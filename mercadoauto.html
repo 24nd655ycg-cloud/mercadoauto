@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MercadoAuto — Publicação automática no Mercado Livre</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --primary:#FFF159;
+    --primary-fg:#000000;
+    --bg:#F5F5F5;
+    --surface:#FFFFFF;
+    --border:#E5E5E5;
+    --text:#111111;
+    --text-soft:#666666;
+    --accent:#000000;
+    --accent-fg:#FFFFFF;
+    --destructive:#FF3B30;
+    --success:#34C759;
+    --font-display:'Space Grotesk', sans-serif;
+    --font-body:'IBM Plex Sans', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:var(--font-body);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;}
+  h1,h2,h3,h4{font-family:var(--font-display);font-weight:800;letter-spacing:-0.02em;margin:0;}
+  button{font-family:var(--font-body);cursor:pointer;}
+  a{color:inherit;text-decoration:none;}
+  ::selection{background:var(--primary);}
+  .overline{font-size:11px;text-transform:uppercase;letter-spacing:0.2em;font-weight:600;color:var(--text-soft);}
+
+  .screen{display:none;}
+  .screen.active{display:block;}
+
+  /* buttons */
+  .yellow-btn{background:var(--primary);color:var(--primary-fg);border:1px solid #000;font-weight:700;font-size:13px;letter-spacing:.02em;transition:transform .2s ease, box-shadow .2s ease;}
+  .yellow-btn:hover{transform:translateY(-2px);box-shadow:3px 3px 0 #000;}
+  .black-btn{background:var(--accent);color:var(--accent-fg);border:1px solid #000;font-weight:700;font-size:13px;transition:transform .2s ease, box-shadow .2s ease;}
+  .black-btn:hover{transform:translateY(-2px);box-shadow:3px 3px 0 var(--primary);}
+  .ghost-btn{background:var(--surface);color:var(--text);border:1px solid var(--border);font-weight:600;font-size:13px;transition:border-color .2s ease, background .2s ease;}
+  .ghost-btn:hover{border-color:#000;background:var(--bg);}
+
+  /* ===== LANDING ===== */
+  #screen-landing header{display:flex;justify-content:space-between;align-items:center;padding:22px 48px;border-bottom:1px solid var(--border);background:var(--surface);}
+  .brand-mark{display:flex;align-items:center;gap:9px;}
+  .brand-mark .sq{width:32px;height:32px;background:var(--primary);border:1px solid #000;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:17px;}
+  .brand-mark .name{font-family:var(--font-display);font-weight:800;font-size:18px;line-height:1;}
+  #screen-landing nav{display:flex;gap:10px;}
+  .hero{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border);}
+  .hero-left{padding:80px 48px;border-right:1px solid var(--border);}
+  .hero-left .overline{margin-bottom:18px;display:block;}
+  .hero-left h1{font-size:44px;line-height:1.08;max-width:520px;}
+  .hero-left p{font-size:15px;color:var(--text-soft);max-width:460px;margin:22px 0 30px;line-height:1.6;}
+  .hero-actions{display:flex;gap:12px;}
+  .hero-actions button{padding:14px 24px;}
+  .hero-right{padding:80px 48px;display:flex;flex-direction:column;justify-content:center;gap:0;}
+  .kpi-row{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--border);}
+  .kpi{padding:22px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);}
+  .kpi:nth-child(2n){border-right:none;}
+  .kpi:nth-child(3),.kpi:nth-child(4){border-bottom:none;}
+  .kpi .num{font-family:var(--font-display);font-size:30px;font-weight:800;}
+  .kpi .lbl{font-size:12px;color:var(--text-soft);margin-top:4px;}
+
+  .feature-grid{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border);}
+  .feature{padding:40px 32px;border-right:1px solid var(--border);transition:transform .2s ease, background .2s ease;}
+  .feature:last-child{border-right:none;}
+  .feature:hover{transform:translateY(-4px);background:var(--surface);}
+  .feature .num-tag{font-family:var(--font-display);font-size:12px;color:var(--text-soft);}
+  .feature h3{font-size:16px;margin:14px 0 8px;}
+  .feature p{font-size:13px;color:var(--text-soft);line-height:1.55;margin:0;}
+
+  .cta-strip{display:flex;justify-content:space-between;align-items:center;padding:40px 48px;}
+  .cta-strip h2{font-size:24px;}
+  #screen-landing footer{padding:24px 48px;border-top:1px solid var(--border);font-size:12px;color:var(--text-soft);}
+
+  /* ===== AUTH ===== */
+  #screen-login, #screen-register{background:var(--bg);}
+  .auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+  .auth-card{width:100%;max-width:420px;background:var(--surface);border:1px solid var(--border);padding:44px 40px;}
+  .auth-card .brand-mark{margin-bottom:30px;}
+  .auth-card h2{font-size:22px;margin-bottom:6px;}
+  .auth-card p.sub{font-size:13px;color:var(--text-soft);margin:0 0 26px;}
+  .field{margin-bottom:16px;}
+  .field label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:7px;color:var(--text-soft);}
+  .field input, .field select{
+    width:100%;padding:12px 13px;border:1px solid var(--border);background:var(--surface);
+    font-size:14px;font-family:var(--font-body);outline:none;transition:border-color .15s;
+  }
+  .field input:focus, .field select:focus{border-color:#000;}
+  .auth-card .yellow-btn{width:100%;padding:13px;margin-top:8px;}
+  .switch-mode{text-align:center;font-size:13px;color:var(--text-soft);margin-top:20px;}
+  .switch-mode button{background:none;border:none;font-weight:700;font-size:13px;text-decoration:underline;}
+  .err{color:var(--destructive);font-size:12.5px;margin:-6px 0 10px;display:none;}
+
+  /* ===== APP SHELL ===== */
+  #screen-app{display:none;min-height:100vh;}
+  #screen-app.active{display:flex;}
+  .aside{width:256px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;}
+  .aside .top{padding:24px;border-bottom:1px solid var(--border);}
+  .aside .top .brand-mark .name{font-size:16px;}
+  .aside .top .overline{margin-top:5px;}
+  .aside .new-btn-wrap{padding:16px;}
+  .aside .new-btn-wrap button{width:100%;padding:13px;display:flex;align-items:center;justify-content:center;gap:8px;}
+  .aside nav{flex:1;padding:0 12px;}
+  .aside .nav-item{
+    display:flex;align-items:center;gap:11px;padding:10px 12px;font-size:13.5px;font-weight:500;
+    border-left:2px solid transparent;color:var(--text-soft);width:100%;background:none;border-top:none;border-right:none;border-bottom:none;
+    transition:background-color .15s, border-color .15s, color .15s; text-align:left;
+  }
+  .aside .nav-item:hover{color:#000;background:var(--bg);}
+  .aside .nav-item.active{border-left-color:#000;background:rgba(255,241,89,0.35);color:#000;font-weight:700;}
+  .aside .nav-item .ic{width:16px;text-align:center;}
+  .aside .bottom{padding:16px;border-top:1px solid var(--border);}
+  .aside .bottom .side-logo{width:34px;height:34px;border:1px solid var(--border);background:var(--primary);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:14px;color:var(--primary-fg);overflow:hidden;}
+  .aside .bottom .side-logo img{width:100%;height:100%;object-fit:cover;}
+  .aside .bottom .who{font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .aside .bottom .email{font-size:11.5px;color:var(--text-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .aside .bottom .ghost-btn{width:100%;padding:9px;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:7px;font-size:12px;}
+
+  .main{flex:1;overflow-x:hidden;}
+  .view{display:none;}
+  .view.active{display:block;}
+  .page-head{padding:32px 40px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-end;}
+  .dash-logo{width:52px;height:52px;border:1px solid var(--border);background:var(--primary);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:20px;color:var(--primary-fg);overflow:hidden;}
+  .dash-logo img{width:100%;height:100%;object-fit:cover;}
+  .page-head h1{font-size:26px;}
+  .page-head .overline{margin-bottom:8px;}
+  .page-body{padding:32px 40px;}
+
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--border);margin-bottom:28px;}
+  .stat-cell{padding:22px 24px;border-right:1px solid var(--border);}
+  .stat-cell:last-child{border-right:none;}
+  .stat-cell .overline{margin-bottom:10px;}
+  .stat-cell .val{font-family:var(--font-display);font-size:32px;font-weight:800;}
+  .stat-cell .sub{font-size:12px;color:var(--text-soft);margin-top:4px;}
+  .stat-cell.err .val{color:var(--destructive);}
+  .stat-cell.ok .val{color:var(--success);}
+
+  .panel{border:1px solid var(--border);background:var(--surface);margin-bottom:24px;}
+  .panel-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+  .panel-head h3{font-size:15px;}
+  .panel-body{padding:0;}
+
+  table{width:100%;border-collapse:collapse;}
+  th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-soft);padding:12px 22px;border-bottom:1px solid var(--border);font-weight:700;background:var(--bg);}
+  td{padding:14px 22px;font-size:13.5px;border-bottom:1px solid var(--border);}
+  tr:last-child td{border-bottom:none;}
+  tr.tr-hover:hover{background:var(--bg);}
+  td.num{text-align:right;font-variant-numeric:tabular-nums;}
+  .prod-cell{display:flex;align-items:center;gap:11px;}
+  .prod-thumb{width:38px;height:38px;background:var(--bg);border:1px solid var(--border);flex-shrink:0;}
+  .status-pill{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:4px 9px;border:1px solid;display:inline-block;}
+  .status-pill.published{color:var(--success);border-color:var(--success);background:rgba(52,199,89,0.08);}
+  .status-pill.draft{color:var(--text-soft);border-color:var(--border);background:var(--bg);}
+  .status-pill.error{color:var(--destructive);border-color:var(--destructive);background:rgba(255,59,48,0.08);}
+  .row-actions{display:flex;gap:8px;justify-content:flex-end;}
+  .icon-btn{width:30px;height:30px;border:1px solid var(--border);background:var(--surface);display:inline-flex;align-items:center;justify-content:center;font-size:13px;transition:border-color .15s;}
+  .icon-btn:hover{border-color:#000;}
+
+  .toolbar{padding:16px 22px;border-bottom:1px solid var(--border);display:flex;gap:10px;justify-content:space-between;align-items:center;}
+  .toolbar input{padding:9px 12px;border:1px solid var(--border);font-size:13px;font-family:var(--font-body);width:260px;outline:none;}
+  .toolbar input:focus{border-color:#000;}
+
+  /* Product New form */
+  .form-grid{display:grid;grid-template-columns:1.1fr 1fr;border:1px solid var(--border);}
+  .form-col{padding:26px;}
+  .form-col.left{border-right:1px solid var(--border);}
+  .form-col h3{font-size:14px;margin-bottom:18px;}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .field-lg{margin-bottom:14px;}
+  .field-lg label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-soft);display:block;margin-bottom:6px;}
+  .field-lg input, .field-lg select, .field-lg textarea{
+    width:100%;padding:10px 12px;border:1px solid var(--border);font-size:13.5px;font-family:var(--font-body);outline:none;
+  }
+  .field-lg input:focus, .field-lg select:focus, .field-lg textarea:focus{border-color:#000;}
+  .field-lg textarea{min-height:80px;resize:vertical;}
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;border:1px solid var(--border);padding:12px 14px;margin-bottom:16px;}
+  .toggle-row .t-label{font-size:13px;font-weight:600;}
+  .toggle-row .t-sub{font-size:11.5px;color:var(--text-soft);margin-top:2px;}
+  .switch{position:relative;width:38px;height:21px;background:var(--border);cursor:pointer;flex-shrink:0;transition:background .15s;}
+  .switch.on{background:#000;}
+  .switch .knob{position:absolute;top:2px;left:2px;width:17px;height:17px;background:#fff;transition:transform .15s;}
+  .switch.on .knob{transform:translateX(17px);}
+
+  .ai-result{background:var(--bg);border:1px dashed #999;padding:20px;min-height:220px;}
+  .ai-result .empty{color:var(--text-soft);font-size:13px;text-align:center;padding:50px 12px;line-height:1.6;}
+  .spin{width:15px;height:15px;border:2px solid rgba(0,0,0,0.15);border-top-color:#000;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle;margin-right:8px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .ai-badge{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;background:var(--primary);border:1px solid #000;padding:3px 8px;margin-bottom:12px;}
+  .ai-gen-title{font-family:var(--font-display);font-weight:700;font-size:15px;margin-bottom:10px;}
+  .ai-gen-desc{font-size:12.5px;line-height:1.65;color:var(--text);white-space:pre-line;margin-bottom:14px;}
+
+  /* Import */
+  .dropzone{border:2px dashed var(--border);padding:60px 20px;text-align:center;transition:border-color .15s, background .15s;}
+  .dropzone:hover{border-color:#000;background:var(--bg);}
+  .dropzone .dz-icon{font-family:var(--font-display);font-size:28px;font-weight:800;margin-bottom:10px;}
+  .req-cols{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;}
+  .req-cols span{border:1px solid var(--border);font-size:11px;padding:4px 10px;font-family:monospace;background:var(--bg);}
+
+  /* Settings */
+  .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+  .logo-box{width:76px;height:76px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;flex-shrink:0;background:var(--bg);}
+  .logo-box img{width:100%;height:100%;object-fit:cover;}
+  .logo-box .ph{font-size:10px;color:var(--text-soft);text-align:center;font-weight:600;}
+  .conn-badge{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;}
+  .conn-dot{width:7px;height:7px;background:var(--border);flex-shrink:0;}
+  .conn-dot.on{background:var(--success);}
+
+  @media (max-width:960px){
+    .hero{grid-template-columns:1fr;}
+    .hero-left{border-right:none;border-bottom:1px solid var(--border);}
+    .feature-grid{grid-template-columns:1fr 1fr;}
+    .feature:nth-child(2){border-right:none;}
+    .stat-grid{grid-template-columns:1fr 1fr;}
+    .form-grid{grid-template-columns:1fr;}
+    .form-col.left{border-right:none;border-bottom:1px solid var(--border);}
+    .settings-grid{grid-template-columns:1fr;}
+    #screen-app.active{flex-direction:column;}
+    .aside{width:100%;flex-direction:row;overflow-x:auto;}
+    .aside .top,.aside .new-btn-wrap,.aside .bottom{display:none;}
+    .aside nav{display:flex;padding:8px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ LANDING ============ -->
+<div id="screen-landing" class="screen active">
+  <header>
+    <div class="brand-mark"><div class="sq">M</div><div class="name">MercadoAuto</div></div>
+    <nav>
+      <button class="ghost-btn" style="padding:10px 18px;" onclick="goTo('login')">Entrar</button>
+      <button class="black-btn" style="padding:10px 18px;" onclick="goTo('register')">Criar conta</button>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <div class="hero-left">
+      <span class="overline">Publicação automática · Mercado Livre</span>
+      <h1>Seus anúncios publicados sozinhos, com precisão de robô.</h1>
+      <p>MercadoAuto conecta seu estoque à sua conta do Mercado Livre e usa IA para escrever, precificar e publicar cada anúncio — sem retrabalho manual.</p>
+      <div class="hero-actions">
+        <button class="yellow-btn" onclick="goTo('register')">Começar agora →</button>
+        <button class="ghost-btn" onclick="goTo('login')">Já tenho conta</button>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="kpi-row">
+        <div class="kpi"><div class="num">128</div><div class="lbl">Anúncios ativos / empresa</div></div>
+        <div class="kpi"><div class="num">98%</div><div class="lbl">Publicados sem erro</div></div>
+        <div class="kpi"><div class="num">4min</div><div class="lbl">Tempo médio por anúncio</div></div>
+        <div class="kpi"><div class="num">R$ 42k</div><div class="lbl">Vendas médias / mês</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="feature-grid">
+    <div class="feature"><div class="num-tag">01 / IA</div><h3>Título e descrição gerados</h3><p>A IA escreve conteúdo otimizado para busca a partir dos dados brutos do produto.</p></div>
+    <div class="feature"><div class="num-tag">02 / Importação</div><h3>Planilha ou ERP</h3><p>Importe centenas de produtos de uma vez via CSV, Excel ou integração direta com seu sistema.</p></div>
+    <div class="feature"><div class="num-tag">03 / OAuth ML</div><h3>Conexão oficial</h3><p>Conecte sua própria conta do Mercado Livre com Client ID e Secret gerados por você.</p></div>
+    <div class="feature"><div class="num-tag">04 / Painel</div><h3>Controle total</h3><p>Acompanhe status de cada anúncio: rascunho, publicado ou com erro — em tempo real.</p></div>
+  </div>
+
+  <div class="cta-strip">
+    <h2>Pronto para automatizar seus anúncios?</h2>
+    <button class="black-btn" style="padding:13px 22px;" onclick="goTo('register')">Criar conta grátis</button>
+  </div>
+  <footer>MercadoAuto — SaaS multi-empresa para publicação automática no Mercado Livre.</footer>
+</div>
+
+<!-- ============ LOGIN ============ -->
+<div id="screen-login" class="screen">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="brand-mark"><div class="sq">M</div><div class="name">MercadoAuto</div></div>
+      <h2>Entrar na conta</h2>
+      <p class="sub">Acesse o painel da sua empresa.</p>
+      <div class="field"><label>E-mail</label><input id="login-email" type="email" placeholder="voce@suaempresa.com"></div>
+      <div class="field"><label>Senha</label><input id="login-pass" type="password" placeholder="••••••••"></div>
+      <div class="err" id="login-err">Credenciais inválidas. Verifique e-mail e senha.</div>
+      <button class="yellow-btn" onclick="doLogin()">Entrar</button>
+      <div class="switch-mode">Ainda não tem conta? <button onclick="goTo('register')">Cadastre sua empresa</button></div>
+      <div class="switch-mode"><button onclick="goTo('landing')">← Voltar ao início</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ REGISTER ============ -->
+<div id="screen-register" class="screen">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="brand-mark"><div class="sq">M</div><div class="name">MercadoAuto</div></div>
+      <h2>Cadastrar empresa</h2>
+      <p class="sub">Leva menos de um minuto.</p>
+      <div class="field"><label>Nome da empresa</label><input id="reg-company" type="text" placeholder="Ex: Casa Nova Utilidades"></div>
+      <div class="field"><label>E-mail</label><input id="reg-email" type="email" placeholder="voce@suaempresa.com"></div>
+      <div class="field"><label>Senha</label><input id="reg-pass" type="password" placeholder="Mínimo 6 caracteres"></div>
+      <div class="err" id="reg-err">Preencha todos os campos (senha com 6+ caracteres).</div>
+      <button class="yellow-btn" onclick="doRegister()">Criar conta</button>
+      <div class="switch-mode">Já tem conta? <button onclick="goTo('login')">Entrar</button></div>
+      <div class="switch-mode"><button onclick="goTo('landing')">← Voltar ao início</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="screen-app" class="screen">
+  <aside class="aside">
+    <div class="top">
+      <div class="brand-mark"><div class="sq">M</div><div class="name">MercadoAuto</div></div>
+      <div class="overline" style="margin-top:6px;">Publicação Automática</div>
+    </div>
+    <div class="new-btn-wrap"><button class="yellow-btn" onclick="showView('product-new')">＋ NOVO ANÚNCIO</button></div>
+    <nav>
+      <button class="nav-item active" data-view="dashboard" onclick="showView('dashboard')"><span class="ic">▦</span>Painel</button>
+      <button class="nav-item" data-view="products" onclick="showView('products')"><span class="ic">▢</span>Anúncios</button>
+      <button class="nav-item" data-view="import" onclick="showView('import')"><span class="ic">⇧</span>Importar</button>
+      <button class="nav-item" data-view="api-automation" onclick="showView('api-automation')"><span class="ic">⇄</span>Automação API</button>
+      <button class="nav-item" data-view="settings" onclick="showView('settings')"><span class="ic">⚙</span>Configurações</button>
+    </nav>
+    <div class="bottom">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:2px;">
+        <div class="side-logo" id="side-logo">S</div>
+        <div style="min-width:0;">
+          <div class="who" id="side-company">Sua Empresa</div>
+          <div class="email" id="side-email">voce@suaempresa.com</div>
+        </div>
+      </div>
+      <button class="ghost-btn" onclick="doLogout()">⏻ Sair</button>
+    </div>
+  </aside>
+
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div class="view active" id="view-dashboard">
+      <div class="page-head">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div class="dash-logo" id="dash-logo">S</div>
+          <div><span class="overline">Painel</span><h1 id="dash-company-h1">Visão geral</h1></div>
+        </div>
+        <span class="conn-badge"><span class="conn-dot" id="dash-conn-dot"></span><span id="dash-conn-text">ML não conectado</span></span>
+      </div>
+      <div class="page-body">
+        <div class="stat-grid">
+          <div class="stat-cell"><div class="overline">Total de produtos</div><div class="val">37</div><div class="sub">cadastrados na plataforma</div></div>
+          <div class="stat-cell ok"><div class="overline">Publicados</div><div class="val">28</div><div class="sub">ativos no Mercado Livre</div></div>
+          <div class="stat-cell"><div class="overline">Rascunhos</div><div class="val">7</div><div class="sub">aguardando publicação</div></div>
+          <div class="stat-cell err"><div class="overline">Com erro</div><div class="val">2</div><div class="sub">precisam de revisão</div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Anúncios recentes</h3><button class="ghost-btn" style="padding:7px 14px;" onclick="showView('products')">Ver todos</button></div>
+          <table>
+            <tr><th>Produto</th><th>SKU</th><th class="num">Preço</th><th>Status</th></tr>
+            <tr class="tr-hover"><td class="prod-cell"><div class="prod-thumb"></div>Cafeteira Elétrica 1,2L Inox</td><td>CAF-001</td><td class="num">R$ 189,90</td><td><span class="status-pill published">Publicado</span></td></tr>
+            <tr class="tr-hover"><td class="prod-cell"><div class="prod-thumb"></div>Fone Bluetooth In-Ear</td><td>FON-014</td><td class="num">R$ 79,00</td><td><span class="status-pill published">Publicado</span></td></tr>
+            <tr class="tr-hover"><td class="prod-cell"><div class="prod-thumb"></div>Kit Panelas Antiaderente 5pç</td><td>PAN-005</td><td class="num">R$ 249,90</td><td><span class="status-pill error">Erro</span></td></tr>
+            <tr class="tr-hover"><td class="prod-cell"><div class="prod-thumb"></div>Luminária LED de Mesa</td><td>LUM-022</td><td class="num">R$ 65,50</td><td><span class="status-pill draft">Rascunho</span></td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRODUCTS -->
+    <div class="view" id="view-products">
+      <div class="page-head">
+        <div><span class="overline">Catálogo</span><h1>Anúncios</h1></div>
+        <button class="yellow-btn" style="padding:11px 18px;" onclick="showView('product-new')">＋ Novo anúncio</button>
+      </div>
+      <div class="page-body">
+        <div class="panel">
+          <div class="toolbar">
+            <input type="text" placeholder="Buscar por SKU ou título...">
+            <div style="display:flex;gap:8px;">
+              <button class="ghost-btn" style="padding:8px 14px;">Todos</button>
+              <button class="ghost-btn" style="padding:8px 14px;">Publicados</button>
+              <button class="ghost-btn" style="padding:8px 14px;">Rascunhos</button>
+            </div>
+          </div>
+          <table>
+            <tr><th>Produto</th><th>SKU</th><th class="num">Preço</th><th class="num">Estoque</th><th>Status</th><th></th></tr>
+            <tr class="tr-hover"><td class="prod-cell"><div class="prod-thumb"></div>Cafeteira Elétrica 1,2L Inox</td><td>CAF-001</td><td class="num">R$ 189,90</td><td class="num">34</td><td><span class="status-pill published">Publicado</span></td><td class="row-actions"><button class="icon-btn">✎</button></td></tr>
+            <tr class="tr-hover"><td class="prod-cell"><div class="prod-thumb"></div>Fone Bluetooth In-Ear</td><td>FON-014</td><td class="num">R$ 79,00</td><td class="num">112</td><td><span class="status-pill published">Publicado</span></td><td class="row-actions"><button class="icon-btn">✎</button></td></tr>
+            <tr class="tr-hover"><td class="prod-cell"><div class="prod-thumb"></div>Kit Panelas Antiaderente 5pç</td><td>PAN-005</td><td class="num">R$ 249,90</td><td class="num">0</td><td><span class="status-pill error">Erro</span></td><td class="row-actions"><button class="icon-btn">✎</button></td></tr>
+            <tr class="tr-hover"><td class="prod-cell"><div class="prod-thumb"></div>Luminária LED de Mesa</td><td>LUM-022</td><td class="num">R$ 65,50</td><td class="num">2</td><td><span class="status-pill draft">Rascunho</span></td><td class="row-actions"><button class="icon-btn">✎</button></td></tr>
+            <tr class="tr-hover"><td class="prod-cell"><div class="prod-thumb"></div>Mochila Executiva Impermeável</td><td>MOC-009</td><td class="num">R$ 159,00</td><td class="num">58</td><td><span class="status-pill published">Publicado</span></td><td class="row-actions"><button class="icon-btn">✎</button></td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRODUCT NEW -->
+    <div class="view" id="view-product-new">
+      <div class="page-head"><div><span class="overline">Catálogo / Novo</span><h1>Criar anúncio</h1></div></div>
+      <div class="page-body">
+        <div class="form-grid">
+          <div class="form-col left">
+            <h3>Dados do produto</h3>
+            <div class="form-row">
+              <div class="field-lg"><label>SKU</label><input id="pn-sku" type="text" placeholder="Ex: CAF-002"></div>
+              <div class="field-lg"><label>Marca</label><input id="pn-brand" type="text" placeholder="Ex: Oster"></div>
+            </div>
+            <div class="field-lg"><label>Título (bruto)</label><input id="pn-title" type="text" placeholder="Ex: Garrafa térmica aço inox 1L"></div>
+            <div class="field-lg"><label>Descrição (bruta)</label><textarea id="pn-desc" placeholder="Ex: mantém temperatura por 12h, tampa antivazamento"></textarea></div>
+            <div class="form-row">
+              <div class="field-lg"><label>Preço (R$)</label><input id="pn-price" type="number" placeholder="45,00"></div>
+              <div class="field-lg"><label>Quantidade</label><input id="pn-qty" type="number" placeholder="10"></div>
+            </div>
+            <div class="form-row">
+              <div class="field-lg"><label>Categoria</label>
+                <select id="pn-cat">
+                  <option>Casa, Móveis e Decoração</option>
+                  <option>Eletrônicos, Áudio e Vídeo</option>
+                  <option>Esportes e Fitness</option>
+                  <option>Moda e Acessórios</option>
+                </select>
+              </div>
+              <div class="field-lg"><label>Condição</label>
+                <select id="pn-cond"><option value="new">Novo</option><option value="used">Usado</option></select>
+              </div>
+            </div>
+            <div class="toggle-row">
+              <div><div class="t-label">Gerar conteúdo com IA</div><div class="t-sub">Título e descrição otimizados automaticamente</div></div>
+              <div class="switch on" id="ai-switch" onclick="toggleAISwitch()"><div class="knob"></div></div>
+            </div>
+            <button class="black-btn" style="width:100%;padding:13px;" onclick="gerarAnuncio()">Gerar e revisar anúncio</button>
+          </div>
+          <div class="form-col">
+            <h3>Pré-visualização</h3>
+            <div class="ai-result" id="ai-result">
+              <div class="empty">Preencha os dados ao lado e clique em<br><strong>"Gerar e revisar anúncio"</strong>.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- IMPORT -->
+    <div class="view" id="view-import">
+      <div class="page-head"><div><span class="overline">Catálogo</span><h1>Importar planilha</h1></div></div>
+      <div class="page-body">
+        <div class="panel">
+          <div class="panel-head"><h3>Upload de arquivo (.csv ou .xlsx)</h3></div>
+          <div style="padding:26px;">
+            <div class="dropzone" onclick="document.getElementById('sheet-input').click()">
+              <div class="dz-icon">⇧</div>
+              <div style="font-size:13.5px;font-weight:600;">Clique para selecionar sua planilha</div>
+              <div style="font-size:12px;color:var(--text-soft);margin-top:4px;">ou arraste o arquivo aqui</div>
+            </div>
+            <input type="file" id="sheet-input" accept=".csv,.xlsx,.xls" style="display:none;" onchange="handleSheet(event)">
+            <div style="font-size:12px;color:var(--text-soft);margin-top:16px;">Colunas obrigatórias:</div>
+            <div class="req-cols"><span>sku</span><span>title</span><span>price</span><span>quantity</span><span>brand</span><span>category</span><span>images</span></div>
+            <div id="import-result" style="margin-top:18px;font-size:13px;"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Integração via ERP (API)</h3></div>
+          <div style="padding:22px;font-size:13px;color:var(--text-soft);line-height:1.6;">
+            Envie produtos automaticamente do seu sistema interno para o endpoint <code>/api/integrations/erp/products</code>, usando o token da sua conta MercadoAuto.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- API AUTOMATION -->
+    <div class="view" id="view-api-automation">
+      <div class="page-head"><div><span class="overline">Integrações</span><h1>Automação via API</h1></div></div>
+      <div class="page-body">
+        <div class="panel">
+          <div class="panel-head"><h3>Sistemas internos conectados</h3></div>
+          <div class="panel-body">
+            <table id="api-integ-table">
+              <tr><th>Sistema</th><th>Endpoint</th><th>Sincronização</th><th>Status</th><th></th></tr>
+            </table>
+            <div id="api-integ-empty" style="padding:40px 22px;text-align:center;color:var(--text-soft);font-size:13px;">
+              Nenhum sistema conectado ainda. Cadastre abaixo a API do seu sistema interno.
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Conectar novo sistema</h3></div>
+          <div style="padding:22px;">
+            <div class="form-row">
+              <div class="field-lg"><label>Nome do sistema</label><input id="api-name" type="text" placeholder="Ex: Empresa Narezzi"></div>
+              <div class="field-lg"><label>Ambiente</label>
+                <select id="api-env"><option value="producao">Produção</option><option value="homologacao">Homologação</option></select>
+              </div>
+            </div>
+            <div class="field-lg"><label>URL base da API</label><input id="api-url" type="text" placeholder="https://api.narezzi.com.br/v1"></div>
+            <div class="form-row">
+              <div class="field-lg"><label>Chave de API (API Key)</label><input id="api-key" type="password" placeholder="••••••••••••••••"></div>
+              <div class="field-lg"><label>Sincronizar</label>
+                <select id="api-freq"><option value="realtime">Em tempo real (webhook)</option><option value="15min">A cada 15 minutos</option><option value="1h">A cada hora</option><option value="diario">Uma vez por dia</option></select>
+              </div>
+            </div>
+            <div class="toggle-row">
+              <div><div class="t-label">Ativar sincronização automática</div><div class="t-sub">Produtos e estoque serão importados assim que conectado</div></div>
+              <div class="switch on" id="api-active-switch" onclick="toggleApiActive()"><div class="knob"></div></div>
+            </div>
+            <button class="black-btn" style="padding:11px 20px;" onclick="addApiIntegration()">Conectar sistema</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Endpoint de recebimento (para o seu sistema chamar)</h3></div>
+          <div style="padding:22px;font-size:13px;color:var(--text-soft);line-height:1.7;">
+            Se preferir, configure o sistema interno para <strong>enviar</strong> os produtos diretamente para o MercadoAuto, chamando:
+            <div class="req-cols" style="margin-top:10px;"><span>POST /api/integrations/erp/products</span></div>
+            Envie um array de produtos (sku, title, description, price, quantity, brand, category) com o token da sua conta no cabeçalho <code>Authorization</code>. Os produtos chegam como rascunho e podem ser gerados com IA e publicados a partir da aba <strong>Anúncios</strong>.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="view" id="view-settings">
+      <div class="page-head"><div><span class="overline">Conta</span><h1>Configurações</h1></div></div>
+      <div class="page-body">
+        <div class="panel">
+          <div class="panel-head"><h3>Personalização de cores</h3></div>
+          <div style="padding:22px;">
+            <p style="font-size:12.5px;color:var(--text-soft);margin:0 0 18px;line-height:1.6;">Ajuste as cores do seu painel para seguir a identidade visual da sua empresa. A cor de destaque é usada em botões e realces.</p>
+            <div class="form-row" style="margin-bottom:16px;">
+              <div class="field-lg" style="margin-bottom:0;">
+                <label>Cor de destaque</label>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <input id="theme-primary" type="color" value="#FFF159" style="width:44px;height:38px;padding:2px;border:1px solid var(--border);cursor:pointer;">
+                  <input id="theme-primary-hex" type="text" value="#FFF159" style="flex:1;" oninput="syncColorHex('primary')">
+                </div>
+              </div>
+              <div class="field-lg" style="margin-bottom:0;">
+                <label>Cor de texto sobre destaque</label>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <input id="theme-primary-fg" type="color" value="#000000" style="width:44px;height:38px;padding:2px;border:1px solid var(--border);cursor:pointer;">
+                  <input id="theme-primary-fg-hex" type="text" value="#000000" style="flex:1;" oninput="syncColorHex('primary-fg')">
+                </div>
+              </div>
+            </div>
+            <div class="form-row" style="margin-bottom:6px;">
+              <div class="field-lg" style="margin-bottom:0;">
+                <label>Cor de fundo (dashboard)</label>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <input id="theme-bg" type="color" value="#F5F5F5" style="width:44px;height:38px;padding:2px;border:1px solid var(--border);cursor:pointer;">
+                  <input id="theme-bg-hex" type="text" value="#F5F5F5" style="flex:1;" oninput="syncColorHex('bg')">
+                </div>
+              </div>
+              <div class="field-lg" style="margin-bottom:0;">
+                <label>Cor de destaque secundária (preto/acento)</label>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <input id="theme-accent" type="color" value="#000000" style="width:44px;height:38px;padding:2px;border:1px solid var(--border);cursor:pointer;">
+                  <input id="theme-accent-hex" type="text" value="#000000" style="flex:1;" oninput="syncColorHex('accent')">
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:16px;">
+              <button class="black-btn" style="padding:10px 18px;" onclick="applyTheme(true)">Aplicar e salvar paleta</button>
+              <button class="ghost-btn" style="padding:10px 18px;" onclick="resetTheme()">Restaurar padrão Mercado Livre</button>
+            </div>
+          </div>
+        </div>
+        <div class="settings-grid">
+          <div class="panel">
+            <div class="panel-head"><h3>Empresa</h3></div>
+            <div style="padding:22px;">
+              <div style="display:flex;gap:16px;align-items:center;margin-bottom:18px;">
+                <div class="logo-box" onclick="document.getElementById('cfg-logo-input').click()">
+                  <img id="cfg-logo-preview" style="display:none;">
+                  <div class="ph" id="cfg-logo-ph">LOGO</div>
+                </div>
+                <input type="file" id="cfg-logo-input" accept="image/*" style="display:none;" onchange="previewCfgLogo(event)">
+                <div style="flex:1;">
+                  <div class="field-lg" style="margin-bottom:0;"><label>Nome da empresa</label><input id="cfg-company-name" type="text"></div>
+                </div>
+              </div>
+              <button class="black-btn" style="padding:10px 18px;" onclick="saveConfig()">Salvar alterações</button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h3>Conexão Mercado Livre</h3><span class="conn-badge"><span class="conn-dot" id="conn-dot"></span><span id="conn-text">Não conectado</span></span></div>
+            <div style="padding:22px;">
+              <div class="field-lg"><label>Client ID</label><input id="ml-client-id" type="text" placeholder="Do seu app em developers.mercadolivre.com.br"></div>
+              <div class="field-lg"><label>Client Secret</label><input id="ml-client-secret" type="password" placeholder="••••••••••••"></div>
+              <div class="field-lg"><label>Redirect URI</label><input id="ml-redirect" type="text" placeholder="https://sua-conta.mercadoauto.app/ml/callback"></div>
+              <button class="yellow-btn" id="ml-conn-btn" style="width:100%;padding:12px;margin-top:6px;" onclick="toggleConn()">Conectar conta do Mercado Livre</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  let state = { companyName: "", email: "", logoDataUrl: null };
+  let mlConnected = false;
+  let aiOn = true;
+
+  function goTo(screen){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById('screen-'+screen).classList.add('active');
+    window.scrollTo(0,0);
+  }
+
+  function doLogin(){
+    const email = document.getElementById('login-email').value.trim();
+    const pass = document.getElementById('login-pass').value.trim();
+    const err = document.getElementById('login-err');
+    if(!email || !pass){ err.style.display='block'; return; }
+    err.style.display='none';
+    state.email = email;
+    state.companyName = state.companyName || "Sua Empresa";
+    enterApp();
+  }
+
+  function doRegister(){
+    const company = document.getElementById('reg-company').value.trim();
+    const email = document.getElementById('reg-email').value.trim();
+    const pass = document.getElementById('reg-pass').value.trim();
+    const err = document.getElementById('reg-err');
+    if(!company || !email || pass.length < 6){ err.style.display='block'; return; }
+    err.style.display='none';
+    state.companyName = company;
+    state.email = email;
+    enterApp();
+  }
+
+  function enterApp(){
+    document.getElementById('side-company').textContent = state.companyName;
+    document.getElementById('side-email').textContent = state.email;
+    document.getElementById('cfg-company-name').value = state.companyName;
+    updateLogoDisplays();
+    goTo('app');
+    showView('dashboard');
+  }
+
+  function showView(view){
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById('view-'+view).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.view===view));
+  }
+
+  function doLogout(){
+    goTo('landing');
+  }
+
+  function toggleAISwitch(){
+    aiOn = !aiOn;
+    document.getElementById('ai-switch').classList.toggle('on', aiOn);
+  }
+
+  function gerarAnuncio(){
+    const title = document.getElementById('pn-title').value.trim() || "Produto sem título";
+    const brand = document.getElementById('pn-brand').value.trim();
+    const cat = document.getElementById('pn-cat').value;
+    const price = parseFloat(document.getElementById('pn-price').value) || 0;
+    const notes = document.getElementById('pn-desc').value.trim();
+    const box = document.getElementById('ai-result');
+
+    if(!aiOn){
+      box.innerHTML = `<div class="ai-gen-title">${title}</div><div class="ai-gen-desc">${notes || "Sem descrição informada."}</div><div style="font-family:var(--font-display);font-size:18px;font-weight:800;">R$ ${price.toFixed(2).replace('.',',')}</div>`;
+      return;
+    }
+
+    box.innerHTML = '<div class="empty"><span class="spin"></span>Gerando título e descrição com IA...</div>';
+    setTimeout(()=>{
+      const optTitle = `${brand ? brand+' ' : ''}${title}`.slice(0,60);
+      const desc = `• ${title}${brand ? ' da marca '+brand : ''}, pronto para envio imediato.\n• Categoria: ${cat}.\n${notes ? '• '+notes+'.\n' : ''}• Produto novo, com garantia.\n• Ideal para uso diário ou presente.`;
+      const suggested = (price * 1.35).toFixed(2).replace('.', ',');
+      box.innerHTML = `
+        <span class="ai-badge">Gerado por IA</span>
+        <div class="ai-gen-title">${optTitle}</div>
+        <div class="ai-gen-desc">${desc}</div>
+        <div style="font-family:var(--font-display);font-size:18px;font-weight:800;margin-bottom:14px;">R$ ${suggested} <span style="font-size:11px;color:var(--text-soft);font-weight:500;">sugerido</span></div>
+        <div style="display:flex;gap:10px;">
+          <button class="black-btn" style="padding:9px 16px;" onclick="showView('products')">Publicar anúncio</button>
+          <button class="ghost-btn" style="padding:9px 16px;" onclick="gerarAnuncio()">Gerar novamente</button>
+        </div>
+      `;
+    }, 1100);
+  }
+
+  function handleSheet(e){
+    const file = e.target.files[0];
+    const res = document.getElementById('import-result');
+    if(!file) return;
+    res.innerHTML = '<span class="spin"></span>Processando planilha...';
+    setTimeout(()=>{
+      res.innerHTML = `<strong style="color:var(--success);">✓ 14 produtos importados</strong> a partir de <code>${file.name}</code>. 0 erros encontrados.`;
+    }, 1000);
+  }
+
+  function previewCfgLogo(e){
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev){
+      state.logoDataUrl = ev.target.result;
+      const img = document.getElementById('cfg-logo-preview');
+      img.src = state.logoDataUrl; img.style.display='block';
+      document.getElementById('cfg-logo-ph').style.display='none';
+      updateLogoDisplays();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function updateLogoDisplays(){
+    const initial = (state.companyName || "S").trim().charAt(0).toUpperCase();
+    const sideLogo = document.getElementById('side-logo');
+    const dashLogo = document.getElementById('dash-logo');
+    if(state.logoDataUrl){
+      sideLogo.innerHTML = '<img src="'+state.logoDataUrl+'">';
+      dashLogo.innerHTML = '<img src="'+state.logoDataUrl+'">';
+    } else {
+      sideLogo.textContent = initial;
+      dashLogo.textContent = initial;
+    }
+  }
+
+  function saveConfig(){
+    const name = document.getElementById('cfg-company-name').value.trim();
+    if(name){ state.companyName = name; document.getElementById('side-company').textContent = name; }
+    updateLogoDisplays();
+  }
+
+  /* ---- Personalização de cores ---- */
+  function syncColorHex(key){
+    const hex = document.getElementById('theme-'+key+'-hex').value.trim();
+    if(/^#[0-9A-Fa-f]{6}$/.test(hex)){
+      document.getElementById('theme-'+key).value = hex;
+    }
+  }
+
+  function applyTheme(persist){
+    const primary = document.getElementById('theme-primary').value;
+    const primaryFg = document.getElementById('theme-primary-fg').value;
+    const bg = document.getElementById('theme-bg').value;
+    const accent = document.getElementById('theme-accent').value;
+    const root = document.documentElement.style;
+    root.setProperty('--primary', primary);
+    root.setProperty('--primary-fg', primaryFg);
+    root.setProperty('--bg', bg);
+    root.setProperty('--accent', accent);
+    ['primary','primary-fg','bg','accent'].forEach(k=>{
+      document.getElementById('theme-'+k+'-hex').value = document.getElementById('theme-'+k).value;
+    });
+    if(persist) state.theme = { primary, primaryFg, bg, accent };
+  }
+
+  function resetTheme(){
+    document.getElementById('theme-primary').value = '#FFF159';
+    document.getElementById('theme-primary-hex').value = '#FFF159';
+    document.getElementById('theme-primary-fg').value = '#000000';
+    document.getElementById('theme-primary-fg-hex').value = '#000000';
+    document.getElementById('theme-bg').value = '#F5F5F5';
+    document.getElementById('theme-bg-hex').value = '#F5F5F5';
+    document.getElementById('theme-accent').value = '#000000';
+    document.getElementById('theme-accent-hex').value = '#000000';
+    applyTheme(true);
+  }
+
+  ['primary','primary-fg','bg','accent'].forEach(k=>{
+    document.addEventListener('DOMContentLoaded', ()=>{
+      const picker = document.getElementById('theme-'+k);
+      if(picker) picker.addEventListener('input', ()=>{ applyTheme(false); });
+    });
+  });
+
+  /* ---- Automação via API (sistemas internos) ---- */
+  let apiIntegrations = [];
+  let apiActiveToggle = true;
+
+  function toggleApiActive(){
+    apiActiveToggle = !apiActiveToggle;
+    document.getElementById('api-active-switch').classList.toggle('on', apiActiveToggle);
+  }
+
+  const FREQ_LABEL = { realtime: 'Tempo real (webhook)', '15min': 'A cada 15 min', '1h': 'A cada hora', diario: 'Diária' };
+
+  function addApiIntegration(){
+    const name = document.getElementById('api-name').value.trim();
+    const url = document.getElementById('api-url').value.trim();
+    const key = document.getElementById('api-key').value.trim();
+    const freq = document.getElementById('api-freq').value;
+    if(!name || !url || !key){
+      alert('Preencha nome, URL base e chave de API para conectar o sistema.');
+      return;
+    }
+    apiIntegrations.push({ name, url, freq, active: apiActiveToggle });
+    document.getElementById('api-name').value = '';
+    document.getElementById('api-url').value = '';
+    document.getElementById('api-key').value = '';
+    renderApiIntegrations();
+  }
+
+  function removeApiIntegration(idx){
+    apiIntegrations.splice(idx,1);
+    renderApiIntegrations();
+  }
+
+  function toggleApiIntegrationStatus(idx){
+    apiIntegrations[idx].active = !apiIntegrations[idx].active;
+    renderApiIntegrations();
+  }
+
+  function renderApiIntegrations(){
+    const table = document.getElementById('api-integ-table');
+    const empty = document.getElementById('api-integ-empty');
+    const rows = apiIntegrations.map((it, idx) => `
+      <tr class="tr-hover">
+        <td style="font-weight:600;">${it.name}</td>
+        <td style="font-family:monospace;font-size:12px;color:var(--text-soft);">${it.url}</td>
+        <td>${FREQ_LABEL[it.freq] || it.freq}</td>
+        <td><span class="status-pill ${it.active ? 'published' : 'draft'}">${it.active ? 'Ativo' : 'Pausado'}</span></td>
+        <td class="row-actions">
+          <button class="icon-btn" onclick="toggleApiIntegrationStatus(${idx})">${it.active ? '⏸' : '▶'}</button>
+          <button class="icon-btn" onclick="removeApiIntegration(${idx})">✕</button>
+        </td>
+      </tr>`).join('');
+    table.innerHTML = '<tr><th>Sistema</th><th>Endpoint</th><th>Sincronização</th><th>Status</th><th></th></tr>' + rows;
+    empty.style.display = apiIntegrations.length ? 'none' : 'block';
+    table.style.display = apiIntegrations.length ? 'table' : 'none';
+  }
+  renderApiIntegrations();
+
+  function toggleConn(){
+    mlConnected = !mlConnected;
+    document.getElementById('conn-dot').classList.toggle('on', mlConnected);
+    document.getElementById('conn-text').textContent = mlConnected ? 'Conectado' : 'Não conectado';
+    document.getElementById('ml-conn-btn').textContent = mlConnected ? 'Desconectar conta' : 'Conectar conta do Mercado Livre';
+    document.getElementById('dash-conn-dot').classList.toggle('on', mlConnected);
+    document.getElementById('dash-conn-text').textContent = mlConnected ? 'ML conectado' : 'ML não conectado';
+  }
+</script>
+</body>
+</html>
