@@ -120,7 +120,7 @@
   .aside .bottom .email{font-size:11.5px;color:var(--text-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .aside .bottom .ghost-btn{width:100%;padding:9px;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:7px;font-size:12px;}
 
-  .main{flex:1;overflow-x:hidden;}
+  .main{flex:1;overflow-x:auto;}
   .view{display:none;}
   .view.active{display:block;}
   .page-head{padding:32px 40px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-end;}
@@ -150,7 +150,9 @@
   tr:last-child td{border-bottom:none;}
   tr.tr-hover:hover{background:var(--bg);}
   td.num{text-align:right;font-variant-numeric:tabular-nums;}
-  .prod-cell{display:flex;align-items:center;gap:11px;}
+  .prod-cell{display:flex;align-items:center;gap:11px;min-width:0;}
+  .prod-cell .prod-title{overflow-wrap:break-word;word-break:break-word;min-width:0;max-width:360px;}
+  table td.prod-cell, table th:first-child{max-width:420px;}
   .prod-thumb{width:38px;height:38px;background:var(--bg);border:1px solid var(--border);flex-shrink:0;}
   .status-pill{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:4px 9px;border:1px solid;display:inline-block;}
   .status-pill.published{color:var(--success);border-color:var(--success);background:rgba(52,199,89,0.08);}
@@ -1310,13 +1312,13 @@
     const statusLabel = p.status === 'published' ? 'Publicado' : (p.status === 'draft' ? 'Rascunho' : 'Erro');
     productsById[p.id] = p;
     const zero = Number(p.quantity) === 0 ? ' zero-stock' : '';
-    return `<tr class="tr-hover${zero}" data-product-id="${p.id}"><td class="prod-cell"><div class="prod-thumb"></div>${p.title}</td><td>${p.sku}</td><td class="num">R$ ${Number(p.price).toFixed(2).replace('.', ',')}</td><td><span class="status-pill ${p.status}">${statusLabel}</span></td></tr>`;
+    return `<tr class="tr-hover${zero}" data-product-id="${p.id}"><td class="prod-cell"><div class="prod-thumb"></div><span class="prod-title">${p.title}</span></td><td>${p.sku}</td><td class="num">R$ ${Number(p.price).toFixed(2).replace('.', ',')}</td><td><span class="status-pill ${p.status}">${statusLabel}</span></td></tr>`;
   }
   function rowHtmlProducts(p){
     const statusLabel = p.status === 'published' ? 'Publicado' : (p.status === 'draft' ? 'Rascunho' : 'Erro');
     productsById[p.id] = p;
     const zero = Number(p.quantity) === 0 ? ' zero-stock' : '';
-    return `<tr class="tr-hover${zero}" data-product-id="${p.id}"><td class="prod-cell"><div class="prod-thumb"></div>${p.title}</td><td>${p.sku}</td><td class="num">R$ ${Number(p.price).toFixed(2).replace('.', ',')}</td><td class="num qty-cell">${p.quantity}</td><td><span class="status-pill ${p.status}">${statusLabel}</span></td><td class="row-actions"><button class="icon-btn" onclick="openEditProduct('${p.id}')" title="Editar anúncio">✎</button></td></tr>`;
+    return `<tr class="tr-hover${zero}" data-product-id="${p.id}"><td class="prod-cell"><div class="prod-thumb"></div><span class="prod-title">${p.title}</span></td><td>${p.sku}</td><td class="num">R$ ${Number(p.price).toFixed(2).replace('.', ',')}</td><td class="num qty-cell">${p.quantity}</td><td><span class="status-pill ${p.status}">${statusLabel}</span></td><td class="row-actions"><button class="icon-btn" onclick="openEditProduct('${p.id}')" title="Editar anúncio">✎</button></td></tr>`;
   }
 
   function bumpStat(id, delta){
