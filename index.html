@@ -163,6 +163,10 @@
   .toolbar{padding:16px 22px;border-bottom:1px solid var(--border);display:flex;gap:10px;justify-content:space-between;align-items:center;}
   .toolbar input{padding:9px 12px;border:1px solid var(--border);font-size:13px;font-family:var(--font-body);width:260px;outline:none;}
   .toolbar input:focus{border-color:#000;}
+  .filter-btn.active{background:#000;color:#fff;border-color:#000;}
+  tr.zero-stock{background:rgba(255,59,48,0.06);}
+  tr.zero-stock:hover{background:rgba(255,59,48,0.1);}
+  tr.zero-stock td.num.qty-cell{color:var(--destructive);font-weight:700;}
 
   /* Product New form */
   .form-grid{display:grid;grid-template-columns:1.1fr 1fr;border:1px solid var(--border);}
@@ -400,11 +404,11 @@
       <div class="page-body">
         <div class="panel">
           <div class="toolbar">
-            <input type="text" placeholder="Buscar por SKU ou título...">
+            <input type="text" id="products-search" placeholder="Buscar por SKU ou título..." oninput="onProductsSearchInput()">
             <div style="display:flex;gap:8px;">
-              <button class="ghost-btn" style="padding:8px 14px;">Todos</button>
-              <button class="ghost-btn" style="padding:8px 14px;">Publicados</button>
-              <button class="ghost-btn" style="padding:8px 14px;">Rascunhos</button>
+              <button class="ghost-btn filter-btn active" data-filter="" style="padding:8px 14px;" onclick="setProductsFilter('')">Todos</button>
+              <button class="ghost-btn filter-btn" data-filter="published" style="padding:8px 14px;" onclick="setProductsFilter('published')">Publicados</button>
+              <button class="ghost-btn filter-btn" data-filter="draft" style="padding:8px 14px;" onclick="setProductsFilter('draft')">Rascunhos</button>
             </div>
           </div>
           <table id="products-table">
@@ -647,6 +651,8 @@
         Este anúncio já está publicado no Mercado Livre — salvar aqui também atualiza o anúncio real.
       </div>
       <div class="field-lg"><label>SKU</label><input id="edit-sku" type="text" disabled style="background:var(--bg);color:var(--text-soft);"></div>
+      <button type="button" class="ghost-btn" id="edit-ai-btn" style="width:100%;padding:10px;margin-bottom:14px;" onclick="generateEditWithAI()">✨ Gerar com IA (buscar referência real no Mercado Livre)</button>
+      <div id="edit-ai-status" style="display:none;font-size:12px;background:var(--bg);border:1px solid var(--border);padding:9px 12px;margin:-6px 0 14px;line-height:1.5;"></div>
       <div class="field-lg"><label>Título</label><input id="edit-title" type="text"></div>
       <div class="field-lg"><label>Descrição</label><textarea id="edit-description" style="min-height:110px;"></textarea></div>
       <div class="form-row">
@@ -812,6 +818,7 @@
     document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
     document.getElementById('view-'+view).classList.add('active');
     document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.view===view));
+    if(view === 'products' && state.authToken) refreshOwnProducts();
   }
 
   function doLogout(){
@@ -839,7 +846,41 @@
     document.getElementById('edit-quantity').value = p.quantity;
     document.getElementById('edit-modal-ml-note').style.display = (p.status === 'published' && p.ml_id && !p.ml_mock) ? 'block' : 'none';
     document.getElementById('edit-modal-err').style.display = 'none';
+    document.getElementById('edit-ai-status').style.display = 'none';
     document.getElementById('edit-modal-overlay').style.display = 'flex';
+  }
+
+  async function generateEditWithAI(){
+    if(!editingProductId) return;
+    const btn = document.getElementById('edit-ai-btn');
+    const status = document.getElementById('edit-ai-status');
+    btn.disabled = true;
+    status.style.display = 'block';
+    status.innerHTML = '<span class="spin" style="border-color:rgba(0,0,0,0.15);border-top-color:#000;"></span>Buscando referência real no Mercado Livre e gerando descrição com IA...';
+    try{
+      const resp = await fetch(`${API_BASE}/api/products/${editingProductId}/ai-suggest`, {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + (state.authToken || '') },
+      });
+      const data = await resp.json();
+      if(!resp.ok) throw new Error(data.detail || 'Não foi possível gerar sugestão agora.');
+
+      document.getElementById('edit-title').value = data.title || document.getElementById('edit-title').value;
+      document.getElementById('edit-description').value = data.description || document.getElementById('edit-description').value;
+      if(data.suggested_price){
+        document.getElementById('edit-price').value = data.suggested_price;
+      }
+
+      if(data.found_reference){
+        status.innerHTML = `✓ Encontramos ${data.sample_count} anúncio(s) parecido(s) no Mercado Livre (referência: "${data.reference_title}"). Título, descrição e preço foram atualizados abaixo — revise antes de salvar.`;
+      } else {
+        status.innerHTML = 'Não encontramos anúncios de referência para esse SKU/título no Mercado Livre, mas a IA gerou uma descrição melhorada mesmo assim. Revise antes de salvar.';
+      }
+    } catch(e){
+      status.innerHTML = `<span style="color:var(--destructive);">✕ ${e.message || 'Erro ao gerar com IA.'}</span>`;
+    } finally {
+      btn.disabled = false;
+    }
   }
 
   function closeEditModal(){
@@ -1014,27 +1055,62 @@
 
   /* Recarrega a lista de produtos do próprio catálogo (sem depender do ML
      estar conectado) — usada após importar planilha. */
+  let currentProductsFilter = { status: '', q: '' };
+  let productsSearchTimer = null;
+
+  function onProductsSearchInput(){
+    clearTimeout(productsSearchTimer);
+    productsSearchTimer = setTimeout(()=>{
+      currentProductsFilter.q = document.getElementById('products-search').value.trim();
+      refreshOwnProducts();
+    }, 400);
+  }
+
+  function setProductsFilter(status){
+    currentProductsFilter.status = status;
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.toggle('active', b.dataset.filter === status));
+    refreshOwnProducts();
+  }
+
   async function refreshOwnProducts(){
     try{
-      const resp = await fetch(`${API_BASE}/api/products`, { headers: { 'Authorization': 'Bearer ' + (state.authToken || '') } });
-      if(!resp.ok) return;
-      const products = await resp.json();
+      const params = new URLSearchParams();
+      if(currentProductsFilter.status) params.set('status', currentProductsFilter.status);
+      if(currentProductsFilter.q) params.set('q', currentProductsFilter.q);
+      const qs = params.toString() ? ('?' + params.toString()) : '';
+
+      const [productsResp, statsResp] = await Promise.all([
+        fetch(`${API_BASE}/api/products${qs}`, { headers: { 'Authorization': 'Bearer ' + (state.authToken || '') } }),
+        fetch(`${API_BASE}/api/stats`, { headers: { 'Authorization': 'Bearer ' + (state.authToken || '') } }),
+      ]);
+      if(!productsResp.ok) return;
+      const products = await productsResp.json();
+      const stats = statsResp.ok ? await statsResp.json() : null;
+
       const dashBody = document.getElementById('dashboard-recent-table');
       const prodBody = document.getElementById('products-table');
       dashBody.querySelectorAll('tr:not(:first-child)').forEach(r=>r.remove());
       prodBody.querySelectorAll('tr:not(:first-child)').forEach(r=>r.remove());
       products.slice(0,5).forEach(p=>dashBody.insertAdjacentHTML('beforeend', rowHtmlDashboard(p)));
       products.forEach(p=>prodBody.insertAdjacentHTML('beforeend', rowHtmlProducts(p)));
-      document.getElementById('dashboard-empty-state').style.display = products.length ? 'none' : 'block';
-      document.getElementById('products-empty-state').style.display = products.length ? 'none' : 'block';
 
-      const draft = products.filter(p=>p.status==='draft').length;
-      const published = products.filter(p=>p.status==='published').length;
-      const error = products.filter(p=>p.status==='error').length;
-      document.getElementById('stat-total').textContent = products.length;
-      document.getElementById('stat-published').textContent = published;
-      document.getElementById('stat-draft').textContent = draft;
-      document.getElementById('stat-error').textContent = error;
+      const noFilterApplied = !currentProductsFilter.status && !currentProductsFilter.q;
+      document.getElementById('dashboard-empty-state').style.display = (noFilterApplied && !products.length) ? 'block' : 'none';
+      document.getElementById('products-empty-state').style.display = products.length ? 'none' : 'block';
+      if(!products.length && !noFilterApplied){
+        document.getElementById('products-empty-state').textContent = 'Nenhum anúncio encontrado para esse filtro/busca.';
+      } else {
+        document.getElementById('products-empty-state').textContent = 'Nenhum anúncio ainda. Conecte sua conta do Mercado Livre em Configurações e clique em "Sincronizar anúncios agora" para importar seus anúncios reais — ou crie um novo anúncio com IA.';
+      }
+
+      // Contagem sempre a partir de /api/stats (conta o total real no banco,
+      // não fica limitada pelo tamanho da lista retornada nem pelo filtro atual).
+      if(stats){
+        document.getElementById('stat-total').textContent = stats.total_products;
+        document.getElementById('stat-published').textContent = stats.published;
+        document.getElementById('stat-draft').textContent = stats.drafts;
+        document.getElementById('stat-error').textContent = stats.errors;
+      }
     } catch(e){ /* silencioso — não é crítico pra o fluxo de import */ }
   }
 
@@ -1232,12 +1308,15 @@
 
   function rowHtmlDashboard(p){
     const statusLabel = p.status === 'published' ? 'Publicado' : (p.status === 'draft' ? 'Rascunho' : 'Erro');
-    return `<tr class="tr-hover"><td class="prod-cell"><div class="prod-thumb"></div>${p.title}</td><td>${p.sku}</td><td class="num">R$ ${Number(p.price).toFixed(2).replace('.', ',')}</td><td><span class="status-pill ${p.status}">${statusLabel}</span></td></tr>`;
+    productsById[p.id] = p;
+    const zero = Number(p.quantity) === 0 ? ' zero-stock' : '';
+    return `<tr class="tr-hover${zero}" data-product-id="${p.id}"><td class="prod-cell"><div class="prod-thumb"></div>${p.title}</td><td>${p.sku}</td><td class="num">R$ ${Number(p.price).toFixed(2).replace('.', ',')}</td><td><span class="status-pill ${p.status}">${statusLabel}</span></td></tr>`;
   }
   function rowHtmlProducts(p){
     const statusLabel = p.status === 'published' ? 'Publicado' : (p.status === 'draft' ? 'Rascunho' : 'Erro');
     productsById[p.id] = p;
-    return `<tr class="tr-hover" data-product-id="${p.id}"><td class="prod-cell"><div class="prod-thumb"></div>${p.title}</td><td>${p.sku}</td><td class="num">R$ ${Number(p.price).toFixed(2).replace('.', ',')}</td><td class="num">${p.quantity}</td><td><span class="status-pill ${p.status}">${statusLabel}</span></td><td class="row-actions"><button class="icon-btn" onclick="openEditProduct('${p.id}')" title="Editar anúncio">✎</button></td></tr>`;
+    const zero = Number(p.quantity) === 0 ? ' zero-stock' : '';
+    return `<tr class="tr-hover${zero}" data-product-id="${p.id}"><td class="prod-cell"><div class="prod-thumb"></div>${p.title}</td><td>${p.sku}</td><td class="num">R$ ${Number(p.price).toFixed(2).replace('.', ',')}</td><td class="num qty-cell">${p.quantity}</td><td><span class="status-pill ${p.status}">${statusLabel}</span></td><td class="row-actions"><button class="icon-btn" onclick="openEditProduct('${p.id}')" title="Editar anúncio">✎</button></td></tr>`;
   }
 
   function bumpStat(id, delta){
