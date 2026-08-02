@@ -638,6 +638,26 @@
             </div>
           </div>
         </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Descrição modelo dos anúncios</h3></div>
+          <div style="padding:22px;">
+            <p style="font-size:12.5px;color:var(--text-soft);margin:0 0 14px;line-height:1.6;">
+              Defina a estrutura que todo anúncio gerado com IA deve seguir (use colchetes
+              para os campos que devem ser preenchidos, ex: <code>[MARCA]</code>). Quando a IA não
+              encontrar um dado real, ela escreve "Não informado" em vez de inventar — nunca
+              reescreve o restante do seu modelo. Se você não configurar nada aqui, o
+              <button type="button" class="ghost-btn" style="padding:2px 8px;font-size:11px;" onclick="useDefaultTemplate()">modelo padrão</button>
+              é usado.
+            </p>
+            <textarea id="cfg-description-template" style="width:100%;min-height:260px;padding:12px 13px;border:1px solid var(--border);font-size:12.5px;font-family:monospace;line-height:1.6;" placeholder="Cole aqui a estrutura da sua empresa, ou deixe em branco para usar o modelo padrão..."></textarea>
+            <div id="cfg-template-status" style="display:none;font-size:12px;margin-top:8px;"></div>
+            <div style="display:flex;gap:10px;margin-top:12px;">
+              <button class="black-btn" style="padding:10px 18px;" onclick="saveDescriptionTemplate()">Salvar template</button>
+              <button class="ghost-btn" style="padding:10px 18px;" onclick="clearDescriptionTemplate()">Limpar (usar padrão)</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -771,6 +791,7 @@
       state.authToken = data.token;
       state.email = data.user.email;
       state.companyName = data.user.company_name;
+      state.descriptionTemplate = data.user.description_template || '';
       setSessionCookie(data.token);
       enterApp();
     } catch(e){
@@ -797,6 +818,7 @@
       state.authToken = data.token;
       state.email = data.user.email;
       state.companyName = data.user.company_name;
+      state.descriptionTemplate = data.user.description_template || '';
       setSessionCookie(data.token);
       enterApp();
     } catch(e){
@@ -809,6 +831,7 @@
     document.getElementById('side-company').textContent = state.companyName;
     document.getElementById('side-email').textContent = state.email;
     document.getElementById('cfg-company-name').value = state.companyName;
+    document.getElementById('cfg-description-template').value = state.descriptionTemplate || '';
     updateLogoDisplays();
     generateRedirectUri();
     validateMlForm();
@@ -1143,11 +1166,75 @@
     }
   }
 
-  function saveConfig(){
+  async function saveConfig(){
     const name = document.getElementById('cfg-company-name').value.trim();
-    if(name){ state.companyName = name; document.getElementById('side-company').textContent = name; }
+    if(!name) return;
+    try{
+      const resp = await fetch(`${API_BASE}/api/company/settings`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (state.authToken || '') },
+        body: JSON.stringify({ company_name: name }),
+      });
+      if(resp.ok){
+        state.companyName = name;
+        document.getElementById('side-company').textContent = name;
+      }
+    } catch(e){ /* mantém o nome mostrado localmente mesmo se a chamada falhar */ }
     updateLogoDisplays();
     generateRedirectUri();
+  }
+
+  const DEFAULT_DESCRIPTION_TEMPLATE_PREVIEW = `{titulo_produto}
+
+✔ APLICAÇÃO
+{aplicacao}
+
+✔ MARCA / FABRICANTE
+{marca}
+
+✔ CÓDIGO DE REFERÊNCIA
+{sku} {codigo_referencia_ml}
+
+✔ CONDIÇÃO
+Peça nova, original ou equivalente de mercado, pronta para uso.
+
+✔ DIFERENCIAIS
+{diferenciais}
+
+✔ GARANTIA
+{garantia}
+
+—
+Dúvidas? Chame antes de comprar — respondemos rápido.`;
+
+  function useDefaultTemplate(){
+    document.getElementById('cfg-description-template').value = DEFAULT_DESCRIPTION_TEMPLATE_PREVIEW;
+  }
+
+  function clearDescriptionTemplate(){
+    document.getElementById('cfg-description-template').value = '';
+    saveDescriptionTemplate();
+  }
+
+  async function saveDescriptionTemplate(){
+    const status = document.getElementById('cfg-template-status');
+    const value = document.getElementById('cfg-description-template').value;
+    status.style.display = 'block';
+    status.style.color = 'var(--text-soft)';
+    status.textContent = 'Salvando...';
+    try{
+      const resp = await fetch(`${API_BASE}/api/company/settings`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (state.authToken || '') },
+        body: JSON.stringify({ description_template: value }),
+      });
+      if(!resp.ok) throw new Error('Falha ao salvar');
+      status.style.color = 'var(--success)';
+      status.textContent = value.trim() ? '✓ Template salvo — os próximos anúncios gerados com IA vão usar essa estrutura.' : '✓ Template removido — os próximos anúncios usarão o modelo padrão.';
+    } catch(e){
+      status.style.color = 'var(--destructive)';
+      status.textContent = 'Não foi possível salvar agora. Tente novamente.';
+    }
   }
 
   /* ---- Personalização de cores ---- */
@@ -1439,6 +1526,7 @@
       state.authToken = token;
       state.email = user.email;
       state.companyName = user.company_name;
+      state.descriptionTemplate = user.description_template || '';
       enterApp();
 
       if(user.ml_connected){
