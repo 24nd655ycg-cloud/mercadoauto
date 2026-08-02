@@ -908,6 +908,10 @@
         status.style.background = '';
         status.style.borderColor = '';
         status.innerHTML = `✓ Encontramos ${data.sample_count} anúncio(s) parecido(s) no Mercado Livre (referência: "${data.reference_title}"). Título, descrição e preço foram atualizados abaixo — revise antes de salvar.`;
+      } else if(data.web_search_used){
+        status.style.background = '';
+        status.style.borderColor = '';
+        status.innerHTML = 'Não encontramos referência no catálogo do Mercado Livre, então a IA buscou na web por informações reais sobre esta peça para complementar a descrição. Revise antes de salvar.';
       } else {
         status.style.background = '';
         status.style.borderColor = '';
