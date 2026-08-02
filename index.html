@@ -896,9 +896,17 @@
         document.getElementById('edit-price').value = data.suggested_price;
       }
 
-      if(data.found_reference){
+      if(!data.ai_used){
+        status.style.background = 'rgba(255,59,48,0.08)';
+        status.style.borderColor = 'var(--destructive)';
+        status.innerHTML = '⚠️ A IA não está configurada no backend agora (falta <code>ANTHROPIC_API_KEY</code> ou <code>OPENAI_API_KEY</code>+<code>AI_PROVIDER=openai</code> no Railway) — por isso o modelo foi só copiado, sem preencher os campos. Configure a chave e tente de novo.';
+      } else if(data.found_reference){
+        status.style.background = '';
+        status.style.borderColor = '';
         status.innerHTML = `✓ Encontramos ${data.sample_count} anúncio(s) parecido(s) no Mercado Livre (referência: "${data.reference_title}"). Título, descrição e preço foram atualizados abaixo — revise antes de salvar.`;
       } else {
+        status.style.background = '';
+        status.style.borderColor = '';
         status.innerHTML = 'Não encontramos anúncios de referência para esse SKU/título no Mercado Livre, mas a IA gerou uma descrição melhorada mesmo assim. Revise antes de salvar.';
       }
     } catch(e){
