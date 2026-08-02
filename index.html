@@ -900,10 +900,10 @@
         status.style.background = 'rgba(255,59,48,0.08)';
         status.style.borderColor = 'var(--destructive)';
         status.innerHTML = '⚠️ A IA não está configurada no backend agora (falta <code>ANTHROPIC_API_KEY</code> ou <code>OPENAI_API_KEY</code>+<code>AI_PROVIDER=openai</code> no Railway) — por isso o modelo foi só copiado, sem preencher os campos. Configure a chave e tente de novo.';
-      } else if(!data.template_filled){
-        status.style.background = 'rgba(255,59,48,0.08)';
-        status.style.borderColor = 'var(--destructive)';
-        status.innerHTML = '⚠️ A IA rodou, mas não conseguiu preencher todos os campos do template (ainda sobraram colchetes/chaves no texto, mesmo após uma segunda tentativa). Revise a descrição com atenção antes de salvar, ou tente gerar de novo.';
+      } else if(!data.ai_completed_fully){
+        status.style.background = '';
+        status.style.borderColor = '';
+        status.innerHTML = 'A IA não preencheu tudo sozinha, mas o site completou automaticamente os campos que sobraram com "Não informado" — nenhum colchete ficou solto. Revise antes de salvar.' + (data.found_reference ? ` Referência encontrada no Mercado Livre: "${data.reference_title}" (${data.sample_count} anúncio(s) parecido(s)).` : '');
       } else if(data.found_reference){
         status.style.background = '';
         status.style.borderColor = '';
