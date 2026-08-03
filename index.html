@@ -78,6 +78,7 @@
   .auth-visual p{color:var(--muted);max-width:380px;font-size:15px;}
   .auth-panel{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;}
   .auth-box{width:100%;max-width:380px;}
+  .auth-box.wide{max-width:440px;}
   .auth-box .back-link{text-align:left;padding:0;margin:0 0 28px;}
   .auth-box h1{margin:6px 0 4px;font-size:28px;}
   .auth-box .sub{color:var(--muted);font-size:13px;margin-bottom:20px;}
@@ -90,40 +91,61 @@
     .auth-visual{display:none;}
   }
 
-  /* ---------- App shell ---------- */
+  /* ---------- App shell (barra superior) ---------- */
   #view-app{display:none;}
-  #view-app.active{display:flex;min-height:100vh;}
-  .sidebar{width:220px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:16px 12px;}
-  .sidebar .logo{padding:8px 8px 20px;}
-  .nav-btn{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:none;color:var(--muted);padding:10px 12px;border-radius:8px;font-size:14px;font-weight:500;}
+  #view-app.active{display:block;min-height:100vh;}
+  .topnav{position:sticky;top:0;z-index:40;background:var(--bg2);border-bottom:1px solid var(--border);}
+  .topnav-inner{max-width:1440px;margin:0 auto;padding:0 20px;display:flex;align-items:center;gap:24px;height:64px;}
+  .topnav .logo{flex-shrink:0;}
+  .topnav-links{display:flex;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;}
+  .topnav-links::-webkit-scrollbar{display:none;}
+  .nav-btn{display:inline-flex;align-items:center;gap:7px;white-space:nowrap;text-align:left;background:none;border:none;color:var(--muted);padding:9px 14px;border-radius:8px;font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;}
   .nav-btn.active{background:var(--accent2);color:var(--text);}
   .nav-btn:hover{color:var(--text);}
-  .new-btn{margin:8px 0 16px;}
-  .sidebar-foot{margin-top:auto;border-top:1px solid var(--border);padding-top:12px;font-size:13px;}
-  .sidebar-foot .who{font-weight:600;}
-  .sidebar-foot .email{color:var(--muted);font-size:12px;}
-  .sidebar-foot button{background:none;border:none;color:var(--muted);padding:6px 0;font-size:13px;}
-  .main{flex:1;padding:28px 32px;max-width:calc(100vw - 220px);}
-  .main h1{margin:0 0 20px;font-size:22px;}
-  .kicker{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;}
+  .topnav-right{display:flex;align-items:center;gap:14px;flex-shrink:0;}
+  .topnav-user{text-align:right;line-height:1.3;}
+  .topnav-user .who{font-weight:700;font-size:12.5px;display:flex;align-items:center;gap:5px;justify-content:flex-end;}
+  .topnav-user .email{color:var(--muted);font-size:11.5px;}
+  .icon-btn-lg{background:none;border:1px solid var(--border);color:var(--muted);width:36px;height:36px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+  .icon-btn-lg:hover{color:var(--text);border-color:var(--muted);}
+  .verified-badge{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:var(--ok);color:#06210f;font-size:9px;font-weight:900;flex-shrink:0;}
+  .main{max-width:1440px;margin:0 auto;padding:32px;width:100%;}
+  .main h1{margin:0 0 20px;font-size:24px;}
+  .kicker{color:var(--accent);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
 
   .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
-  .grid4 .card .num{font-size:26px;font-weight:800;}
-  .grid4 .card .lbl{color:var(--muted);font-size:13px;margin-top:2px;}
+  .grid4 .card{position:relative;overflow:hidden;}
+  .grid4 .card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent2);}
+  .grid4 .card.ok::before{background:var(--ok);}
+  .grid4 .card.warn::before{background:var(--warn);}
+  .grid4 .card.danger::before{background:var(--danger);}
+  .grid4 .card .num{font-size:28px;font-weight:800;}
+  .grid4 .card .lbl{color:var(--muted);font-size:11.5px;margin-top:4px;text-transform:uppercase;letter-spacing:.02em;font-weight:700;}
   table{width:100%;border-collapse:collapse;font-size:14px;}
-  th{text-align:left;color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;padding:8px 10px;border-bottom:1px solid var(--border);}
-  td{padding:10px;border-bottom:1px solid var(--border);}
+  table.table-fixed{table-layout:fixed;}
+  .col-sku{width:130px;}
+  .col-price{width:110px;}
+  .col-qty{width:90px;}
+  .col-status{width:130px;}
+  .col-actions{width:140px;}
+  th{text-align:left;color:var(--muted);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.04em;padding:10px;border-bottom:1px solid var(--border);}
+  td{padding:12px 10px;border-bottom:1px solid var(--border);vertical-align:middle;}
+  td.col-product{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  th.col-actions,td.col-actions{text-align:right;}
   tr:last-child td{border-bottom:none;}
   .empty{color:var(--muted);text-align:center;padding:40px 0;font-size:14px;}
-  tr.zero-stock{background:rgba(239,68,68,.08);}
-  tr.zero-stock td.qty-cell{color:var(--danger);font-weight:700;}
-  .badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:12px;font-weight:600;}
+  .badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;}
   .badge.published{background:rgba(34,197,94,.15);color:var(--ok);}
   .badge.draft{background:rgba(148,163,184,.15);color:var(--muted);}
   .badge.error{background:rgba(239,68,68,.15);color:var(--danger);}
-  .tabs{display:flex;gap:6px;margin-bottom:16px;}
-  .tab{padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:13px;}
-  .tab.active{background:var(--accent2);color:var(--text);}
+  .row-actions{display:inline-flex;gap:5px;}
+  .row-actions button{width:30px;height:30px;border-radius:7px;background:transparent;border:1px solid var(--border);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+  .row-actions button:hover{color:var(--text);border-color:var(--muted);}
+  .row-actions button.danger:hover{color:var(--danger);border-color:var(--danger);}
+  .row-actions button.ok:hover{color:var(--ok);border-color:var(--ok);}
+  .tabs{display:flex;gap:8px;margin-bottom:16px;}
+  .tab{padding:9px 16px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;}
+  .tab.active{background:var(--accent);color:var(--accent-text);border-color:var(--accent);}
   .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
 
   .two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
@@ -137,6 +159,22 @@
   .dropzone:hover{border-color:var(--accent);}
   .cols-note{color:var(--muted);font-size:13px;margin-top:10px;}
   .cols-note code{background:var(--bg);padding:1px 5px;border-radius:4px;}
+
+  /* ---- fotos e vídeo do produto ---- */
+  .photo-hint{color:var(--muted);font-size:12.5px;margin:2px 0 12px;}
+  .thumb-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:6px;}
+  .thumb-tile{position:relative;width:78px;height:104px;border-radius:10px;overflow:hidden;border:1px solid var(--border);background:var(--bg);flex-shrink:0;}
+  .thumb-tile img{width:100%;height:100%;object-fit:cover;display:block;}
+  .thumb-tile .thumb-remove{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:6px;background:rgba(0,0,0,.65);color:#fff;border:none;font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .thumb-tile .thumb-remove:hover{background:var(--danger);}
+  .thumb-tile .thumb-warn-badge{position:absolute;bottom:0;left:0;right:0;background:rgba(245,158,11,.92);color:#1a1300;font-size:9px;font-weight:800;text-align:center;padding:2px 0;text-transform:uppercase;letter-spacing:.02em;}
+  .thumb-add{width:78px;height:104px;border-radius:10px;border:2px dashed var(--border);background:transparent;color:var(--muted);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;font-size:11px;font-weight:700;text-align:center;flex-shrink:0;}
+  .thumb-add:hover{border-color:var(--accent);color:var(--accent);}
+  .thumb-add .plus{font-size:22px;line-height:1;font-weight:400;}
+  .prod-thumb{width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0;border:1px solid var(--border);background:var(--bg);}
+  .prod-thumb-empty{width:40px;height:40px;border-radius:8px;flex-shrink:0;border:1px dashed var(--border);background:var(--bg);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px;}
+  .prod-cell{display:flex;align-items:center;gap:10px;}
+  .prod-cell span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
   .section-title{font-weight:700;margin:0 0 14px;font-size:16px;}
   .settings-block{margin-bottom:28px;}
@@ -152,9 +190,8 @@
   @media(max-width:900px){
     .stats,.features,.grid4,.row3{grid-template-columns:repeat(2,1fr);}
     .two-col{grid-template-columns:1fr;}
-    #view-app.active{flex-direction:column;}
-    .sidebar{width:100%;flex-direction:row;overflow-x:auto;}
-    .main{max-width:100vw;}
+    .topnav-user{display:none;}
+    .main{padding:20px 16px;}
   }
 </style>
 </head>
@@ -241,19 +278,71 @@
     <p>Cadastre sua empresa, conecte sua conta do Mercado Livre e deixe a IA escrever e precificar seus anúncios.</p>
   </div>
   <div class="auth-panel">
-    <div class="auth-box">
+    <div class="auth-box wide">
       <a href="#" class="back-link" id="registerBack">← Voltar ao início</a>
       <h1>Crie sua conta</h1>
-      <div class="sub">Leva menos de um minuto para começar.</div>
+      <div class="sub" id="regStepLabel">Passo 1 de 2 · Dados de acesso</div>
       <form id="formRegister">
-        <label>Nome da empresa</label>
-        <input type="text" id="regCompany" required autocomplete="organization">
-        <label>E-mail</label>
-        <input type="email" id="regEmail" required autocomplete="email">
-        <label>Senha</label>
-        <input type="password" id="regPassword" required minlength="6" autocomplete="new-password">
-        <div class="err hidden" id="regErr">Preencha todos os campos (senha com 6+ caracteres).</div>
-        <button class="btn btn-primary" style="width:100%;margin-top:18px;" type="submit" id="btnRegSubmit">Criar conta</button>
+        <div id="regStep1" class="reg-step">
+          <label>Nome da empresa (razão social)</label>
+          <input type="text" id="regCompany" required autocomplete="organization">
+          <label>E-mail</label>
+          <input type="email" id="regEmail" required autocomplete="email">
+          <label>Senha</label>
+          <input type="password" id="regPassword" required minlength="6" autocomplete="new-password">
+          <label>Confirmar senha</label>
+          <input type="password" id="regPasswordConfirm" required minlength="6" autocomplete="new-password">
+          <div class="err hidden" id="regStep1Err"></div>
+          <button type="button" class="btn btn-primary" style="width:100%;margin-top:18px;" id="btnRegNext">Próximo →</button>
+        </div>
+        <div id="regStep2" class="reg-step hidden">
+          <label>Nome fantasia</label>
+          <input type="text" id="regTradeName" required>
+          <label>CNPJ</label>
+          <input type="text" id="regCnpj" required placeholder="00.000.000/0000-00">
+          <div class="row2">
+            <div><label>Inscrição Estadual</label><input type="text" id="regStateReg" placeholder="Isento, se não tiver"></div>
+            <div><label>Regime tributário</label>
+              <select id="regTaxRegime">
+                <option value="">Selecione</option>
+                <option>MEI</option>
+                <option>Simples Nacional</option>
+                <option>Lucro Presumido</option>
+                <option>Lucro Real</option>
+              </select>
+            </div>
+          </div>
+          <label>Telefone</label>
+          <input type="tel" id="regPhone" required placeholder="(11) 91234-5678">
+          <label>CEP</label>
+          <div class="copy-row">
+            <input type="text" id="regCep" required placeholder="00000-000" autocomplete="postal-code">
+            <button type="button" class="btn btn-ghost" id="btnRegCepSearch">Buscar</button>
+          </div>
+          <div class="err hidden" id="regCepErr"></div>
+          <label>Número</label>
+          <input type="text" id="regNumber" required>
+          <label>Rua</label>
+          <input type="text" id="regStreet" required>
+          <div class="row2">
+            <div><label>Complemento</label><input type="text" id="regComplement"></div>
+            <div><label>Bairro</label><input type="text" id="regNeighborhood" required></div>
+          </div>
+          <div class="row2">
+            <div><label>Cidade</label><input type="text" id="regCity" required></div>
+            <div><label>UF</label>
+              <select id="regState" required>
+                <option value="">UF</option>
+                <option>AC</option><option>AL</option><option>AP</option><option>AM</option><option>BA</option><option>CE</option><option>DF</option><option>ES</option><option>GO</option><option>MA</option><option>MT</option><option>MS</option><option>MG</option><option>PA</option><option>PB</option><option>PR</option><option>PE</option><option>PI</option><option>RJ</option><option>RN</option><option>RS</option><option>RO</option><option>RR</option><option>SC</option><option>SP</option><option>SE</option><option>TO</option>
+              </select>
+            </div>
+          </div>
+          <div class="err hidden" id="regErr">Preencha todos os campos (senha com 6+ caracteres).</div>
+          <div style="display:flex;gap:10px;margin-top:18px;">
+            <button type="button" class="btn btn-ghost" id="btnRegBackStep" style="flex:1;">← Voltar</button>
+            <button class="btn btn-primary" style="flex:2;" type="submit" id="btnRegSubmit">Criar conta</button>
+          </div>
+        </div>
       </form>
       <div class="switch">Já tem conta? <button id="switchToLogin">Entrar</button></div>
       <footer class="auth-foot">© 2026 MercadoAuto. Todos os direitos reservados.</footer>
@@ -263,21 +352,26 @@
 
 <!-- ============ APP ============ -->
 <div id="view-app">
-  <div class="sidebar">
-    <div class="logo"><div class="mark">M</div> MercadoAuto</div>
-    <div style="color:var(--muted);font-size:12px;margin:0 8px 8px;">Publicação Automática</div>
-    <button class="btn btn-primary new-btn" id="btnNewProduct">＋ Novo anúncio</button>
-    <button class="nav-btn active" data-view="painel">▦ Painel</button>
-    <button class="nav-btn" data-view="anuncios">▢ Anúncios</button>
-    <button class="nav-btn" data-view="importar">⇧ Importar</button>
-    <button class="nav-btn" data-view="automacao">⇄ Automação API</button>
-    <button class="nav-btn" data-view="config">⚙ Configurações</button>
-    <div class="sidebar-foot">
-      <div class="who" id="sbCompany">Sua Empresa</div>
-      <div class="email" id="sbEmail">voce@suaempresa.com</div>
-      <button id="btnLogout">⏻ Sair</button>
+  <header class="topnav">
+    <div class="topnav-inner">
+      <div class="logo"><div class="mark">M</div> MercadoAuto</div>
+      <nav class="topnav-links">
+        <button class="nav-btn active" data-view="painel">▦ Painel</button>
+        <button class="nav-btn" data-view="anuncios">▢ Anúncios</button>
+        <button class="nav-btn" data-view="importar">⇧ Importar</button>
+        <button class="nav-btn" data-view="automacao">⇄ Automação API</button>
+        <button class="nav-btn" data-view="config">⚙ Configurações</button>
+      </nav>
+      <div class="topnav-right">
+        <button class="btn btn-primary" id="btnNewProduct">＋ Novo anúncio</button>
+        <div class="topnav-user">
+          <div class="who"><span id="sbCompany">Sua Empresa</span></div>
+          <div class="email" id="sbEmail">voce@suaempresa.com</div>
+        </div>
+        <button id="btnLogout" class="icon-btn-lg" title="Sair da conta">⏻</button>
+      </div>
     </div>
-  </div>
+  </header>
 
   <div class="main">
     <!-- PAINEL -->
@@ -287,14 +381,14 @@
       <div id="mlWarnBanner" class="card hidden" style="margin-bottom:16px;color:var(--warn);">ML não conectado</div>
       <div class="grid4">
         <div class="card"><div class="num" id="statTotal">0</div><div class="lbl">Total de produtos<br>cadastrados na plataforma</div></div>
-        <div class="card"><div class="num" id="statPublished">0</div><div class="lbl">Publicados<br>ativos no Mercado Livre</div></div>
-        <div class="card"><div class="num" id="statDrafts">0</div><div class="lbl">Rascunhos<br>aguardando publicação</div></div>
-        <div class="card"><div class="num" id="statErrors">0</div><div class="lbl">Com erro<br>precisam de revisão</div></div>
+        <div class="card ok"><div class="num" id="statPublished">0</div><div class="lbl">Publicados<br>ativos no Mercado Livre</div></div>
+        <div class="card warn"><div class="num" id="statDrafts">0</div><div class="lbl">Rascunhos<br>aguardando publicação</div></div>
+        <div class="card danger"><div class="num" id="statErrors">0</div><div class="lbl">Com erro<br>precisam de revisão</div></div>
       </div>
       <div class="card">
         <div class="toolbar"><h3 style="margin:0;">Anúncios recentes</h3><button class="btn btn-ghost" id="btnSeeAll">Ver todos</button></div>
-        <table>
-          <thead><tr><th>Produto</th><th>SKU</th><th>Preço</th><th>Status</th></tr></thead>
+        <table class="table-fixed">
+          <thead><tr><th class="col-product">Produto</th><th class="col-sku">SKU</th><th class="col-price">Preço</th><th class="col-status">Status</th></tr></thead>
           <tbody id="recentBody"></tbody>
         </table>
         <div class="empty hidden" id="recentEmpty">Nenhum anúncio ainda. Conecte sua conta do Mercado Livre em Configurações para importar seus anúncios reais.</div>
@@ -305,17 +399,14 @@
     <section id="page-anuncios" class="hidden">
       <div class="kicker">Catálogo</div>
       <div class="toolbar"><h1 style="margin:0;">Anúncios</h1><button class="btn btn-primary" id="btnNewProduct2">＋ Novo anúncio</button></div>
-      <div class="toolbar" style="margin-bottom:12px;">
-        <div class="tabs" style="margin-bottom:0;">
-          <button class="tab active" data-status="">Todos</button>
-          <button class="tab" data-status="published">Publicados</button>
-          <button class="tab" data-status="draft">Rascunhos</button>
-        </div>
-        <input type="text" id="prodSearch" placeholder="Buscar por SKU ou título..." style="max-width:260px;">
+      <div class="tabs">
+        <button class="tab active" data-status="">Todos</button>
+        <button class="tab" data-status="published">Publicados</button>
+        <button class="tab" data-status="draft">Rascunhos</button>
       </div>
       <div class="card">
-        <table>
-          <thead><tr><th>Produto</th><th>SKU</th><th>Preço</th><th>Estoque</th><th>Status</th><th></th></tr></thead>
+        <table class="table-fixed">
+          <thead><tr><th class="col-product">Produto</th><th class="col-sku">SKU</th><th class="col-price">Preço</th><th class="col-qty">Estoque</th><th class="col-status">Status</th><th class="col-actions">Ações</th></tr></thead>
           <tbody id="prodBody"></tbody>
         </table>
         <div class="empty hidden" id="prodEmpty">Nenhum anúncio ainda. Conecte sua conta do Mercado Livre em Configurações e clique em "Sincronizar anúncios agora" para importar seus anúncios reais — ou crie um novo anúncio com IA.</div>
@@ -349,6 +440,18 @@
           </select>
           <label>Condição</label>
           <select id="npCondition"><option value="new">Novo</option><option value="used">Usado</option></select>
+
+          <label>Fotos do produto</label>
+          <div class="photo-hint">Recomendado: proporção <strong>3×4 (retrato)</strong> — ex: 900×1200px, fundo neutro. A primeira foto é a capa do anúncio. Anúncios com fotos boas vendem muito mais no Mercado Livre.</div>
+          <div class="thumb-row" id="npPhotoRow">
+            <button type="button" class="thumb-add" id="npPhotoAdd"><span class="plus">＋</span>Adicionar</button>
+          </div>
+          <input type="file" id="npPhotoInput" accept="image/*" multiple class="hidden">
+
+          <label>Vídeo do produto (opcional)</label>
+          <input id="npVideo" placeholder="Link do YouTube (ex: https://youtube.com/watch?v=...)">
+          <div class="photo-hint" style="margin-top:6px;">Vídeos aumentam a conversão de vendas. O Mercado Livre aceita vídeos hospedados no YouTube.</div>
+
           <div class="toggle-row">
             <div><strong>Gerar conteúdo com IA</strong><div style="color:var(--muted);font-size:13px;">Título e descrição otimizados automaticamente</div></div>
             <input type="checkbox" id="npUseAi" checked style="width:auto;">
@@ -386,8 +489,8 @@
       <h1>Automação via API</h1>
       <div class="card">
         <div class="section-title">Sistemas internos conectados</div>
-        <table>
-          <thead><tr><th>Sistema</th><th>Endpoint</th><th>Sincronização</th><th>Status</th><th></th></tr></thead>
+        <table class="table-fixed">
+          <thead><tr><th class="col-product">Sistema</th><th class="col-product">Endpoint</th><th class="col-sku">Sincronização</th><th class="col-status">Status</th><th class="col-actions">Ações</th></tr></thead>
           <tbody id="erpBody"></tbody>
         </table>
         <div class="empty" id="erpEmpty">Nenhum sistema conectado ainda. Cadastre abaixo a API do seu sistema interno.</div>
@@ -447,6 +550,51 @@
       </div>
 
       <div class="card settings-block">
+        <div class="section-title">Dados fiscais da empresa</div>
+        <p style="color:var(--muted);font-size:13px;">Usados no cadastro da plataforma e, futuramente, na emissão de notas fiscais.</p>
+        <div class="row2">
+          <div><label>Nome fantasia</label><input id="cfgTradeName"></div>
+          <div><label>CNPJ</label><input id="cfgCnpj" placeholder="00.000.000/0000-00"></div>
+        </div>
+        <div class="row2">
+          <div><label>Inscrição Estadual</label><input id="cfgStateReg" placeholder="Isento, se não tiver"></div>
+          <div><label>Regime tributário</label>
+            <select id="cfgTaxRegime">
+              <option value="">Selecione</option>
+              <option>MEI</option>
+              <option>Simples Nacional</option>
+              <option>Lucro Presumido</option>
+              <option>Lucro Real</option>
+            </select>
+          </div>
+        </div>
+        <label>Telefone</label><input id="cfgPhone" type="tel" placeholder="(11) 91234-5678">
+        <label>CEP</label>
+        <div class="copy-row">
+          <input id="cfgCep" placeholder="00000-000" autocomplete="postal-code">
+          <button type="button" class="btn btn-ghost" id="btnCfgCepSearch">Buscar</button>
+        </div>
+        <div class="err hidden" id="cfgCepErr"></div>
+        <label>Número</label><input id="cfgNumber">
+        <label>Rua</label><input id="cfgStreet">
+        <div class="row2">
+          <div><label>Complemento</label><input id="cfgComplement"></div>
+          <div><label>Bairro</label><input id="cfgNeighborhood"></div>
+        </div>
+        <div class="row2">
+          <div><label>Cidade</label><input id="cfgCity"></div>
+          <div><label>UF</label>
+            <select id="cfgState">
+              <option value="">UF</option>
+              <option>AC</option><option>AL</option><option>AP</option><option>AM</option><option>BA</option><option>CE</option><option>DF</option><option>ES</option><option>GO</option><option>MA</option><option>MT</option><option>MS</option><option>MG</option><option>PA</option><option>PB</option><option>PR</option><option>PE</option><option>PI</option><option>RJ</option><option>RN</option><option>RS</option><option>RO</option><option>RR</option><option>SC</option><option>SP</option><option>SE</option><option>TO</option>
+            </select>
+          </div>
+        </div>
+        <div class="err hidden" id="cfgFiscalErr"></div>
+        <button class="btn btn-primary" id="btnSaveFiscal" style="margin-top:10px;">Salvar dados fiscais</button>
+      </div>
+
+      <div class="card settings-block">
         <div class="section-title">Conexão Mercado Livre</div>
         <div class="conn-status"><span class="dot" id="mlDot"></span><span id="mlStatusTxt">Não conectado</span></div>
         <p><a href="https://developers.mercadolivre.com.br" target="_blank" rel="noopener">↗ Criar aplicação no Mercado Livre Developers</a></p>
@@ -470,6 +618,17 @@
           <button class="btn btn-ghost" id="btnClearTemplate">Limpar (usar padrão)</button>
         </div>
       </div>
+
+      <div class="card settings-block">
+        <div class="section-title">Conta</div>
+        <label>Senha atual</label><input id="cfgCurPassword" type="password" autocomplete="current-password">
+        <label>Nova senha</label><input id="cfgNewPassword" type="password" minlength="6" autocomplete="new-password">
+        <label>Confirmar nova senha</label><input id="cfgNewPasswordConfirm" type="password" minlength="6" autocomplete="new-password">
+        <div class="err hidden" id="cfgPassErr"></div>
+        <button class="btn btn-primary" id="btnChangePassword" style="margin-top:10px;">Trocar senha</button>
+        <div style="border-top:1px solid var(--border);margin:20px 0 16px;"></div>
+        <button class="btn btn-ghost" id="btnLogoutSettings" style="width:100%;">⏻ Sair da conta</button>
+      </div>
     </section>
   </div>
 </div>
@@ -487,6 +646,17 @@
       <div><label>Preço (R$)</label><input id="editPrice" type="number" step="0.01"></div>
       <div><label>Estoque</label><input id="editQty" type="number"></div>
     </div>
+
+    <label>Fotos do produto</label>
+    <div class="photo-hint">Recomendado: proporção <strong>3×4 (retrato)</strong> — ex: 900×1200px. A primeira foto é a capa do anúncio.</div>
+    <div class="thumb-row" id="editPhotoRow">
+      <button type="button" class="thumb-add" id="editPhotoAdd"><span class="plus">＋</span>Adicionar</button>
+    </div>
+    <input type="file" id="editPhotoInput" accept="image/*" multiple class="hidden">
+
+    <label>Vídeo do produto (opcional)</label>
+    <input id="editVideo" placeholder="Link do YouTube (ex: https://youtube.com/watch?v=...)">
+
     <div style="display:flex;gap:10px;margin-top:16px;">
       <button class="btn btn-primary" id="btnSaveEdit" style="flex:1;">Salvar alterações</button>
       <button class="btn btn-ghost" id="btnCancelEdit">Cancelar</button>
@@ -505,7 +675,6 @@
   let products = [];
   let currentEditId = null;
   let currentStatusFilter = "";
-  let currentSearchQuery = "";
 
   // ---------- cookie/session helpers ----------
   function setCookie(name, value, days){
@@ -581,7 +750,100 @@
     hideAllTopViews();
     document.getElementById('view-register').classList.add('active');
     document.getElementById('regErr').classList.add('hidden');
+    goToRegStep(1);
   }
+  function goToRegStep(step){
+    document.getElementById('regStep1').classList.toggle('hidden', step !== 1);
+    document.getElementById('regStep2').classList.toggle('hidden', step !== 2);
+    document.getElementById('regStepLabel').textContent = step === 1 ? 'Passo 1 de 2 · Dados de acesso' : 'Passo 2 de 2 · Dados fiscais e de contato';
+  }
+  document.getElementById('btnRegNext').onclick = () => {
+    const errEl = document.getElementById('regStep1Err');
+    errEl.classList.add('hidden');
+    const inputs = document.getElementById('regStep1').querySelectorAll('input');
+    let valid = true;
+    let firstInvalid = null;
+    inputs.forEach(el => { if (!el.checkValidity()){ valid = false; if (!firstInvalid) firstInvalid = el; } });
+    if (!valid){ firstInvalid.reportValidity(); return; }
+    if (document.getElementById('regPassword').value !== document.getElementById('regPasswordConfirm').value){
+      errEl.textContent = 'As senhas não coincidem.';
+      errEl.classList.remove('hidden');
+      return;
+    }
+    goToRegStep(2);
+  };
+  document.getElementById('btnRegBackStep').onclick = () => goToRegStep(1);
+
+  // ---------- busca de CEP (ViaCEP) ----------
+  async function lookupCep(cep, fields, errEl, btn){
+    const digits = (cep || '').replace(/\D/g, '');
+    errEl.classList.add('hidden');
+    if (digits.length !== 8){
+      errEl.textContent = 'Digite um CEP válido (8 dígitos).';
+      errEl.classList.remove('hidden');
+      return;
+    }
+    const originalLabel = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Buscando...';
+    try {
+      const res = await fetch('https://viacep.com.br/ws/' + digits + '/json/');
+      const data = await res.json();
+      if (data.erro){
+        errEl.textContent = 'CEP não encontrado.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+      fields.street.value = data.logradouro || fields.street.value;
+      fields.neighborhood.value = data.bairro || fields.neighborhood.value;
+      fields.city.value = data.localidade || fields.city.value;
+      fields.state.value = data.uf || fields.state.value;
+      if (data.complemento && fields.complement && !fields.complement.value) fields.complement.value = data.complemento;
+      if (fields.numberFocus) fields.numberFocus.focus();
+    } catch(e){
+      errEl.textContent = 'Falha ao buscar o CEP. Tente novamente.';
+      errEl.classList.remove('hidden');
+    } finally {
+      btn.disabled = false; btn.textContent = originalLabel;
+    }
+  }
+  document.getElementById('btnRegCepSearch').onclick = () => lookupCep(
+    document.getElementById('regCep').value,
+    {
+      street: document.getElementById('regStreet'),
+      neighborhood: document.getElementById('regNeighborhood'),
+      city: document.getElementById('regCity'),
+      state: document.getElementById('regState'),
+      complement: document.getElementById('regComplement'),
+      numberFocus: document.getElementById('regNumber')
+    },
+    document.getElementById('regCepErr'),
+    document.getElementById('btnRegCepSearch')
+  );
+  document.getElementById('btnCfgCepSearch').onclick = () => lookupCep(
+    document.getElementById('cfgCep').value,
+    {
+      street: document.getElementById('cfgStreet'),
+      neighborhood: document.getElementById('cfgNeighborhood'),
+      city: document.getElementById('cfgCity'),
+      state: document.getElementById('cfgState'),
+      complement: document.getElementById('cfgComplement'),
+      numberFocus: document.getElementById('cfgNumber')
+    },
+    document.getElementById('cfgCepErr'),
+    document.getElementById('btnCfgCepSearch')
+  );
+  function maskCep(e){
+    let v = e.target.value.replace(/\D/g, '').slice(0, 8);
+    if (v.length > 5) v = v.slice(0, 5) + '-' + v.slice(5);
+    e.target.value = v;
+  }
+  ['regCep', 'cfgCep'].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('input', maskCep);
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter'){ e.preventDefault(); document.getElementById(id === 'regCep' ? 'btnRegCepSearch' : 'btnCfgCepSearch').click(); }
+    });
+  });
 
   document.getElementById('btnGoLogin').onclick = () => openLogin();
   document.getElementById('btnHeroLogin').onclick = () => openLogin();
@@ -622,11 +884,23 @@
       const res = await api('/auth/register', {method:'POST', body: JSON.stringify({
         company_name: document.getElementById('regCompany').value,
         email: document.getElementById('regEmail').value,
-        password: document.getElementById('regPassword').value
+        password: document.getElementById('regPassword').value,
+        trade_name: document.getElementById('regTradeName').value,
+        cnpj: document.getElementById('regCnpj').value,
+        phone: document.getElementById('regPhone').value,
+        state_registration: document.getElementById('regStateReg').value,
+        tax_regime: document.getElementById('regTaxRegime').value,
+        address_cep: document.getElementById('regCep').value,
+        address_street: document.getElementById('regStreet').value,
+        address_number: document.getElementById('regNumber').value,
+        address_complement: document.getElementById('regComplement').value,
+        address_neighborhood: document.getElementById('regNeighborhood').value,
+        address_city: document.getElementById('regCity').value,
+        address_state: document.getElementById('regState').value
       })});
       onAuthSuccess(res);
     } catch(err){
-      errEl.textContent = err.message || 'Preencha todos os campos (senha com 6+ caracteres).';
+      errEl.textContent = err.message || 'Preencha todos os campos (senha com 6+ caracteres, CNPJ com 14 dígitos).';
       errEl.classList.remove('hidden');
     } finally { btn.disabled = false; }
   });
@@ -640,11 +914,13 @@
     loadEverything();
   }
 
-  document.getElementById('btnLogout').onclick = () => {
+  function logout(){
     token = null; user = null;
     clearCookie('mercadoauto_token');
     showLanding();
-  };
+  }
+  document.getElementById('btnLogout').onclick = logout;
+  document.getElementById('btnLogoutSettings').onclick = logout;
 
   function hydrateAppShell(){
     document.getElementById('sbCompany').textContent = user.company_name || 'Sua Empresa';
@@ -653,6 +929,18 @@
     document.getElementById('cfgTemplate').value = user.description_template || '';
     document.getElementById('mlClientId').value = user.ml_client_id || '';
     document.getElementById('mlRedirectUri').value = API_BASE + '/api/ml/callback';
+    document.getElementById('cfgTradeName').value = user.trade_name || '';
+    document.getElementById('cfgCnpj').value = user.cnpj || '';
+    document.getElementById('cfgStateReg').value = user.state_registration || '';
+    document.getElementById('cfgTaxRegime').value = user.tax_regime || '';
+    document.getElementById('cfgPhone').value = user.phone || '';
+    document.getElementById('cfgCep').value = user.address_cep || '';
+    document.getElementById('cfgStreet').value = user.address_street || '';
+    document.getElementById('cfgNumber').value = user.address_number || '';
+    document.getElementById('cfgComplement').value = user.address_complement || '';
+    document.getElementById('cfgNeighborhood').value = user.address_neighborhood || '';
+    document.getElementById('cfgCity').value = user.address_city || '';
+    document.getElementById('cfgState').value = user.address_state || '';
   }
 
   // ---------- nav ----------
@@ -678,8 +966,94 @@
     document.getElementById('npCategory').value = '';
     document.getElementById('npCondition').value = 'new';
     document.getElementById('npUseAi').checked = true;
+    document.getElementById('npVideo').value = '';
+    npPhotos = [];
+    renderThumbRow('npPhotoRow', 'npPhotoAdd', npPhotos, removeNpPhoto);
     document.getElementById('npPreview').innerHTML = '<h3>Pré-visualização</h3><div class="preview-empty">Preencha os dados ao lado e clique em<br><strong>"Gerar e revisar anúncio"</strong>.</div>';
   }
+
+  // ---------- fotos / vídeo do produto ----------
+  // Proporção recomendada 3:4 (retrato) — o Mercado Livre também aceita
+  // outras proporções, então isso é só um aviso visual, nunca bloqueia o
+  // envio da foto.
+  function checkAspectRatio(file){
+    return new Promise((resolve) => {
+      const img = new Image();
+      const objUrl = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(objUrl);
+        const ratio = img.naturalWidth / img.naturalHeight;
+        const target = 3 / 4; // largura/altura
+        resolve(Math.abs(ratio - target) > 0.12);
+      };
+      img.onerror = () => { URL.revokeObjectURL(objUrl); resolve(false); };
+      img.src = objUrl;
+    });
+  }
+
+  async function uploadProductPhoto(file){
+    if (!file.type.startsWith('image/')){
+      toast('Selecione um arquivo de imagem.', 'error');
+      return null;
+    }
+    const warn = await checkAspectRatio(file);
+    const fd = new FormData();
+    fd.append('file', file);
+    try {
+      const r = await api('/uploads', {method:'POST', body: fd});
+      return {id: r.id, url: API_BASE + r.url, warn, external: false};
+    } catch(e){
+      toast('Falha ao enviar foto: ' + e.message, 'error');
+      return null;
+    }
+  }
+
+  function renderThumbRow(rowId, addBtnId, photos, onRemove){
+    const row = document.getElementById(rowId);
+    row.innerHTML = '';
+    photos.forEach((p, i) => {
+      const tile = document.createElement('div');
+      tile.className = 'thumb-tile';
+      tile.innerHTML = '<img src="' + p.url + '" loading="lazy">' +
+        (p.warn ? '<div class="thumb-warn-badge">Fora de 3:4</div>' : '') +
+        '<button type="button" class="thumb-remove" title="Remover">✕</button>';
+      tile.querySelector('.thumb-remove').onclick = () => onRemove(i);
+      row.appendChild(tile);
+    });
+    const addBtn = document.createElement('button');
+    addBtn.type = 'button';
+    addBtn.className = 'thumb-add';
+    addBtn.id = addBtnId;
+    addBtn.innerHTML = '<span class="plus">＋</span>Adicionar';
+    addBtn.onclick = () => document.getElementById(addBtnId === 'npPhotoAdd' ? 'npPhotoInput' : 'editPhotoInput').click();
+    row.appendChild(addBtn);
+  }
+
+  let npPhotos = [];
+  function removeNpPhoto(i){ npPhotos.splice(i,1); renderThumbRow('npPhotoRow','npPhotoAdd',npPhotos,removeNpPhoto); }
+  document.getElementById('npPhotoAdd').onclick = () => document.getElementById('npPhotoInput').click();
+  document.getElementById('npPhotoInput').onchange = async (e) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = '';
+    for (const file of files){
+      const p = await uploadProductPhoto(file);
+      if (p) npPhotos.push(p);
+    }
+    renderThumbRow('npPhotoRow','npPhotoAdd',npPhotos,removeNpPhoto);
+  };
+
+  let editPhotos = [];
+  function removeEditPhoto(i){ editPhotos.splice(i,1); renderThumbRow('editPhotoRow','editPhotoAdd',editPhotos,removeEditPhoto); }
+  document.getElementById('editPhotoAdd').onclick = () => document.getElementById('editPhotoInput').click();
+  document.getElementById('editPhotoInput').onchange = async (e) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = '';
+    for (const file of files){
+      const p = await uploadProductPhoto(file);
+      if (p) editPhotos.push(p);
+    }
+    renderThumbRow('editPhotoRow','editPhotoAdd',editPhotos,removeEditPhoto);
+  };
 
   // ---------- painel ----------
   async function refreshStats(){
@@ -697,35 +1071,52 @@
   }
 
   function fmtPrice(v){ return 'R$ ' + Number(v||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}); }
-  function statusBadge(status, errorMessage){
+  function statusBadge(status){
     const label = status === 'published' ? 'Publicado' : status === 'error' ? 'Erro' : 'Rascunho';
-    const title = (status === 'error' && errorMessage) ? ' title="' + escapeHtml(errorMessage) + '"' : '';
-    return '<span class="badge ' + status + '"' + title + '>' + label + '</span>';
+    const icon = status === 'published' ? '✓' : status === 'error' ? '!' : '●';
+    return '<span class="badge ' + status + '">' + icon + ' ' + label + '</span>';
+  }
+
+  function productThumbUrl(p){
+    if (p.image_ids && p.image_ids.length) return API_BASE + '/api/public/files/' + p.image_ids[0];
+    if (p.external_image_urls && p.external_image_urls.length) return p.external_image_urls[0];
+    if (p.ml_thumbnail) return p.ml_thumbnail;
+    return null;
+  }
+
+  function productCellHtml(p, title){
+    const thumbUrl = productThumbUrl(p);
+    const thumb = thumbUrl
+      ? '<img class="prod-thumb" src="' + thumbUrl + '" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement(\'div\'),{className:\'prod-thumb-empty\',textContent:\'🖼\'}))">'
+      : '<div class="prod-thumb-empty">🖼</div>';
+    return '<div class="prod-cell">' + thumb + '<span>' + title + '</span></div>';
   }
 
   function productRow(p, compact){
     const tr = document.createElement('tr');
-    const zero = Number(p.quantity) === 0;
-    if (zero) tr.classList.add('zero-stock');
+    const title = escapeHtml(p.ai_title || p.title);
     if (compact){
-      tr.innerHTML = '<td>' + escapeHtml(p.ai_title || p.title) + '</td><td>' + escapeHtml(p.sku) + '</td><td>' + fmtPrice(p.price) + '</td><td>' + statusBadge(p.status, p.error_message) + '</td>';
+      tr.innerHTML = '<td class="col-product" title="' + title + '">' + productCellHtml(p, title) + '</td><td class="col-sku">' + escapeHtml(p.sku) + '</td><td class="col-price">' + fmtPrice(p.price) + '</td><td class="col-status">' + statusBadge(p.status) + '</td>';
     } else {
-      tr.innerHTML = '<td>' + escapeHtml(p.ai_title || p.title) + '</td><td>' + escapeHtml(p.sku) + '</td><td>' + fmtPrice(p.price) + '</td><td class="qty-cell">' + p.quantity + '</td><td>' + statusBadge(p.status, p.error_message) + '</td><td></td>';
+      tr.innerHTML = '<td class="col-product" title="' + title + '">' + productCellHtml(p, title) + '</td><td class="col-sku">' + escapeHtml(p.sku) + '</td><td class="col-price">' + fmtPrice(p.price) + '</td><td class="col-qty">' + p.quantity + '</td><td class="col-status">' + statusBadge(p.status) + '</td><td class="col-actions"></td>';
       const actionsTd = tr.lastElementChild;
+      const actionsWrap = document.createElement('div');
+      actionsWrap.className = 'row-actions';
+      actionsTd.appendChild(actionsWrap);
       const editBtn = document.createElement('button');
-      editBtn.className = 'icon-btn'; editBtn.textContent = 'Editar';
+      editBtn.title = 'Editar'; editBtn.textContent = '✎';
       editBtn.onclick = () => openEdit(p);
-      actionsTd.appendChild(editBtn);
+      actionsWrap.appendChild(editBtn);
       if (p.status !== 'published'){
         const pubBtn = document.createElement('button');
-        pubBtn.className = 'icon-btn'; pubBtn.textContent = 'Publicar';
+        pubBtn.className = 'ok'; pubBtn.title = 'Publicar'; pubBtn.textContent = '↑';
         pubBtn.onclick = () => publishProduct(p.id);
-        actionsTd.appendChild(pubBtn);
+        actionsWrap.appendChild(pubBtn);
       }
       const delBtn = document.createElement('button');
-      delBtn.className = 'icon-btn'; delBtn.textContent = 'Excluir';
+      delBtn.className = 'danger'; delBtn.title = 'Excluir'; delBtn.textContent = '✕';
       delBtn.onclick = () => deleteProduct(p.id);
-      actionsTd.appendChild(delBtn);
+      actionsWrap.appendChild(delBtn);
     }
     return tr;
   }
@@ -742,22 +1133,10 @@
     refreshProducts();
   });
 
-  let prodSearchTimer = null;
-  document.getElementById('prodSearch').addEventListener('input', (e) => {
-    clearTimeout(prodSearchTimer);
-    prodSearchTimer = setTimeout(() => {
-      currentSearchQuery = e.target.value.trim();
-      refreshProducts();
-    }, 400);
-  });
-
   async function refreshProducts(){
     try {
-      const params = new URLSearchParams();
-      if (currentStatusFilter) params.set('status', currentStatusFilter);
-      if (currentSearchQuery) params.set('q', currentSearchQuery);
-      const qs = params.toString() ? ('?' + params.toString()) : '';
-      products = await api('/products' + qs);
+      const q = currentStatusFilter ? ('?status=' + currentStatusFilter) : '';
+      products = await api('/products' + q);
       const body = document.getElementById('prodBody');
       body.innerHTML = '';
       document.getElementById('prodEmpty').classList.toggle('hidden', products.length > 0);
@@ -787,6 +1166,8 @@
       brand: document.getElementById('npBrand').value,
       category: document.getElementById('npCategory').value,
       condition: document.getElementById('npCondition').value,
+      image_ids: npPhotos.map(p => p.id),
+      video_url: document.getElementById('npVideo').value.trim() || null,
       use_ai: document.getElementById('npUseAi').checked
     };
     if (!payload.title || !payload.sku || !payload.price){
@@ -795,8 +1176,11 @@
     btn.disabled = true; btn.textContent = 'Gerando...';
     try {
       const p = await api('/products', {method:'POST', body: JSON.stringify(payload)});
+      const photosHtml = npPhotos.length
+        ? '<div class="thumb-row" style="margin-bottom:14px;">' + npPhotos.map(ph => '<div class="thumb-tile"><img src="' + ph.url + '"></div>').join('') + '</div>'
+        : '';
       document.getElementById('npPreview').innerHTML =
-        '<h3>Pré-visualização</h3>' +
+        '<h3>Pré-visualização</h3>' + photosHtml +
         '<label>Título</label><div class="card" style="padding:10px;">' + escapeHtml(p.ai_title || p.title) + '</div>' +
         '<label>Descrição</label><div class="card" style="padding:10px;white-space:pre-wrap;">' + escapeHtml(p.ai_description || p.description) + '</div>' +
         '<label>Preço</label><div class="card" style="padding:10px;">' + fmtPrice(p.price) + '</div>' +
@@ -856,11 +1240,14 @@
     document.getElementById('erpEmpty').classList.toggle('hidden', erpSystems.length > 0);
     erpSystems.forEach((s, i) => {
       const tr = document.createElement('tr');
-      tr.innerHTML = '<td>' + escapeHtml(s.name) + '</td><td>' + escapeHtml(s.url) + '</td><td>' + escapeHtml(s.sync) + '</td><td>' + (s.active ? '<span class="badge published">Ativo</span>' : '<span class="badge draft">Pausado</span>') + '</td><td></td>';
+      tr.innerHTML = '<td class="col-product" title="' + escapeHtml(s.name) + '">' + escapeHtml(s.name) + '</td><td class="col-product" title="' + escapeHtml(s.url) + '">' + escapeHtml(s.url) + '</td><td class="col-sku">' + escapeHtml(s.sync) + '</td><td class="col-status">' + (s.active ? '<span class="badge published">✓ Ativo</span>' : '<span class="badge draft">● Pausado</span>') + '</td><td class="col-actions"></td>';
+      const actionsWrap = document.createElement('div');
+      actionsWrap.className = 'row-actions';
+      tr.lastElementChild.appendChild(actionsWrap);
       const del = document.createElement('button');
-      del.className = 'icon-btn'; del.textContent = 'Remover';
+      del.className = 'danger'; del.title = 'Remover'; del.textContent = '✕';
       del.onclick = () => { erpSystems.splice(i,1); renderErp(); };
-      tr.lastElementChild.appendChild(del);
+      actionsWrap.appendChild(del);
       body.appendChild(tr);
     });
   }
@@ -961,6 +1348,62 @@
     } catch(e){ toast(e.message, 'error'); }
   };
 
+  // dados fiscais da empresa
+  document.getElementById('btnSaveFiscal').onclick = async () => {
+    const errEl = document.getElementById('cfgFiscalErr');
+    errEl.classList.add('hidden');
+    try {
+      const res = await api('/company/settings', {method:'PATCH', body: JSON.stringify({
+        trade_name: document.getElementById('cfgTradeName').value,
+        cnpj: document.getElementById('cfgCnpj').value,
+        state_registration: document.getElementById('cfgStateReg').value,
+        tax_regime: document.getElementById('cfgTaxRegime').value,
+        phone: document.getElementById('cfgPhone').value,
+        address_cep: document.getElementById('cfgCep').value,
+        address_street: document.getElementById('cfgStreet').value,
+        address_number: document.getElementById('cfgNumber').value,
+        address_complement: document.getElementById('cfgComplement').value,
+        address_neighborhood: document.getElementById('cfgNeighborhood').value,
+        address_city: document.getElementById('cfgCity').value,
+        address_state: document.getElementById('cfgState').value
+      })});
+      user = res;
+      toast('Dados fiscais atualizados.');
+    } catch(e){
+      errEl.textContent = e.message || 'Não foi possível salvar os dados fiscais.';
+      errEl.classList.remove('hidden');
+    }
+  };
+
+  // conta: trocar senha
+  document.getElementById('btnChangePassword').onclick = async () => {
+    const errEl = document.getElementById('cfgPassErr');
+    errEl.classList.add('hidden');
+    const cur = document.getElementById('cfgCurPassword').value;
+    const nw = document.getElementById('cfgNewPassword').value;
+    const nwConfirm = document.getElementById('cfgNewPasswordConfirm').value;
+    if (!cur || !nw || nw.length < 6){
+      errEl.textContent = 'Preencha a senha atual e uma nova senha com 6+ caracteres.';
+      errEl.classList.remove('hidden');
+      return;
+    }
+    if (nw !== nwConfirm){
+      errEl.textContent = 'A confirmação não coincide com a nova senha.';
+      errEl.classList.remove('hidden');
+      return;
+    }
+    try {
+      await api('/auth/change-password', {method:'POST', body: JSON.stringify({current_password: cur, new_password: nw})});
+      document.getElementById('cfgCurPassword').value = '';
+      document.getElementById('cfgNewPassword').value = '';
+      document.getElementById('cfgNewPasswordConfirm').value = '';
+      toast('Senha alterada com sucesso.');
+    } catch(e){
+      errEl.textContent = e.message || 'Não foi possível trocar a senha.';
+      errEl.classList.remove('hidden');
+    }
+  };
+
   // ---------- ML connection ----------
   async function refreshMlStatus(){
     try {
@@ -968,7 +1411,9 @@
       const dot = document.getElementById('mlDot');
       const txt = document.getElementById('mlStatusTxt');
       dot.classList.toggle('ok', s.connected);
-      txt.textContent = s.connected ? ('Conectado' + (s.ml_nickname ? (' — ' + s.ml_nickname) : '')) : 'Não conectado';
+      txt.innerHTML = s.connected
+        ? ('<span class="verified-badge">✓</span> Conectado' + (s.ml_nickname ? (' — ' + escapeHtml(s.ml_nickname)) : ''))
+        : 'Não conectado';
       document.getElementById('mlWarnBanner').classList.toggle('hidden', s.connected);
       if (s.ml_client_id) document.getElementById('mlClientId').value = s.ml_client_id;
       document.getElementById('mlRedirectUri').value = API_BASE + '/api/ml/callback';
@@ -1009,7 +1454,13 @@
     document.getElementById('editDesc').value = p.ai_description || p.description;
     document.getElementById('editPrice').value = p.price;
     document.getElementById('editQty').value = p.quantity;
+    document.getElementById('editVideo').value = p.video_url || '';
     document.getElementById('editPublishedWarn').classList.toggle('hidden', p.status !== 'published' || p.ml_mock);
+    editPhotos = [
+      ...(p.image_ids || []).map(id => ({id, url: API_BASE + '/api/public/files/' + id, warn:false, external:false})),
+      ...(p.external_image_urls || []).map(u => ({id:null, url:u, warn:false, external:true})),
+    ];
+    renderThumbRow('editPhotoRow','editPhotoAdd',editPhotos,removeEditPhoto);
     document.getElementById('overlayEdit').classList.remove('hidden');
   }
   document.getElementById('closeEdit').onclick = () => document.getElementById('overlayEdit').classList.add('hidden');
@@ -1020,7 +1471,10 @@
         title: document.getElementById('editTitle').value,
         description: document.getElementById('editDesc').value,
         price: parseFloat(document.getElementById('editPrice').value || '0'),
-        quantity: parseInt(document.getElementById('editQty').value || '0', 10)
+        quantity: parseInt(document.getElementById('editQty').value || '0', 10),
+        image_ids: editPhotos.filter(p => !p.external).map(p => p.id),
+        external_image_urls: editPhotos.filter(p => p.external).map(p => p.url),
+        video_url: document.getElementById('editVideo').value.trim()
       })});
       toast('Alterações salvas.');
       document.getElementById('overlayEdit').classList.add('hidden');
