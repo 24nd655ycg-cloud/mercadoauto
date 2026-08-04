@@ -97,6 +97,7 @@
   .topnav{position:sticky;top:0;z-index:40;background:var(--bg2);border-bottom:1px solid var(--border);}
   .topnav-inner{max-width:1440px;margin:0 auto;padding:0 20px;display:flex;align-items:center;gap:24px;height:64px;}
   .topnav .logo{flex-shrink:0;}
+  #topnavLogoImg{width:28px;height:28px;border-radius:8px;object-fit:cover;}
   .topnav-links{display:flex;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;}
   .topnav-links::-webkit-scrollbar{display:none;}
   .nav-btn{display:inline-flex;align-items:center;gap:7px;white-space:nowrap;text-align:left;background:none;border:none;color:var(--muted);padding:9px 14px;border-radius:8px;font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;}
@@ -355,7 +356,7 @@
 <div id="view-app">
   <header class="topnav">
     <div class="topnav-inner">
-      <div class="logo"><div class="mark">M</div> MercadoAuto</div>
+      <div class="logo"><div class="mark" id="topnavLogoMark">M</div><img id="topnavLogoImg" class="hidden" alt="Logo"> MercadoAuto</div>
       <nav class="topnav-links">
         <button class="nav-btn active" data-view="painel">▦ Painel</button>
         <button class="nav-btn" data-view="anuncios">▢ Anúncios</button>
@@ -943,6 +944,32 @@
     document.getElementById('cfgNeighborhood').value = user.address_neighborhood || '';
     document.getElementById('cfgCity').value = user.address_city || '';
     document.getElementById('cfgState').value = user.address_state || '';
+
+    // logo da empresa
+    if (user.logo_file_id){
+      const logoUrl = API_BASE + '/api/public/files/' + user.logo_file_id;
+      document.getElementById('logoDrop').innerHTML = '<img src="' + logoUrl + '" style="max-height:60px;">';
+      document.getElementById('topnavLogoMark').classList.add('hidden');
+      const navImg = document.getElementById('topnavLogoImg');
+      navImg.src = logoUrl;
+      navImg.classList.remove('hidden');
+    }
+
+    // paleta de cores salva na empresa (funciona em qualquer navegador/dispositivo)
+    if (user.palette_accent){
+      applyPalette(
+        user.palette_accent,
+        user.palette_accent_text || '#1a1a1a',
+        user.palette_bg || '#111318',
+        user.palette_accent2 || '#2d3748'
+      );
+      document.getElementById('colAccent').value = user.palette_accent;
+      document.getElementById('colAccentText').value = user.palette_accent_text || '#1a1a1a';
+      document.getElementById('colBg').value = user.palette_bg || '#111318';
+      document.getElementById('colAccent2').value = user.palette_accent2 || '#2d3748';
+    }
+
+    refreshErpConnections();
   }
 
   // ---------- nav ----------
@@ -1234,39 +1261,54 @@
     } catch(e){ toast(e.message, 'error'); }
   }
 
-  // ---------- automação (client-side only — sem persistência no backend hoje) ----------
+  // ---------- automação (salvo no backend, por empresa) ----------
   let erpSystems = [];
   function renderErp(){
     const body = document.getElementById('erpBody');
     body.innerHTML = '';
     document.getElementById('erpEmpty').classList.toggle('hidden', erpSystems.length > 0);
-    erpSystems.forEach((s, i) => {
+    erpSystems.forEach((s) => {
       const tr = document.createElement('tr');
-      tr.innerHTML = '<td class="col-product" title="' + escapeHtml(s.name) + '">' + escapeHtml(s.name) + '</td><td class="col-product" title="' + escapeHtml(s.url) + '">' + escapeHtml(s.url) + '</td><td class="col-sku">' + escapeHtml(s.sync) + '</td><td class="col-status">' + (s.active ? '<span class="badge published">✓ Ativo</span>' : '<span class="badge draft">● Pausado</span>') + '</td><td class="col-actions"></td>';
+      tr.innerHTML = '<td class="col-product" title="' + escapeHtml(s.name) + '">' + escapeHtml(s.name) + '</td><td class="col-product" title="' + escapeHtml(s.base_url) + '">' + escapeHtml(s.base_url) + '</td><td class="col-sku">' + escapeHtml(s.sync) + '</td><td class="col-status">' + (s.active ? '<span class="badge published">✓ Ativo</span>' : '<span class="badge draft">● Pausado</span>') + '</td><td class="col-actions"></td>';
       const actionsWrap = document.createElement('div');
       actionsWrap.className = 'row-actions';
       tr.lastElementChild.appendChild(actionsWrap);
       const del = document.createElement('button');
       del.className = 'danger'; del.title = 'Remover'; del.textContent = '✕';
-      del.onclick = () => { erpSystems.splice(i,1); renderErp(); };
+      del.onclick = async () => {
+        try { await api('/erp-connections/' + s.id, {method:'DELETE'}); refreshErpConnections(); toast('Integração removida.'); }
+        catch(e){ toast(e.message, 'error'); }
+      };
       actionsWrap.appendChild(del);
       body.appendChild(tr);
     });
   }
-  document.getElementById('btnErpConnect').onclick = () => {
+  async function refreshErpConnections(){
+    try { erpSystems = await api('/erp-connections'); renderErp(); }
+    catch(e){ console.error(e); }
+  }
+  document.getElementById('btnErpConnect').onclick = async () => {
     const name = document.getElementById('erpName').value.trim();
     const url = document.getElementById('erpUrl').value.trim();
     if (!name || !url){ toast('Preencha nome do sistema e URL base.', 'error'); return; }
-    erpSystems.push({
-      name, url,
-      sync: document.getElementById('erpSync').value,
-      active: document.getElementById('erpAuto').checked
-    });
-    document.getElementById('erpName').value = '';
-    document.getElementById('erpUrl').value = '';
-    document.getElementById('erpKey').value = '';
-    renderErp();
-    toast('Sistema conectado.');
+    const btn = document.getElementById('btnErpConnect');
+    btn.disabled = true;
+    try {
+      await api('/erp-connections', {method:'POST', body: JSON.stringify({
+        name,
+        base_url: url,
+        environment: document.getElementById('erpEnv').value,
+        api_key: document.getElementById('erpKey').value,
+        sync: document.getElementById('erpSync').value,
+        active: document.getElementById('erpAuto').checked
+      })});
+      document.getElementById('erpName').value = '';
+      document.getElementById('erpUrl').value = '';
+      document.getElementById('erpKey').value = '';
+      await refreshErpConnections();
+      toast('Sistema conectado.');
+    } catch(e){ toast(e.message, 'error'); }
+    finally { btn.disabled = false; }
   };
   renderErp();
 
@@ -1278,22 +1320,32 @@
     r.setProperty('--bg', bg);
     r.setProperty('--accent2', accent2);
   }
-  document.getElementById('btnApplyPalette').onclick = () => {
+  document.getElementById('btnApplyPalette').onclick = async () => {
     const accent = document.getElementById('colAccent').value;
     const accentText = document.getElementById('colAccentText').value;
     const bg = document.getElementById('colBg').value;
     const accent2 = document.getElementById('colAccent2').value;
     applyPalette(accent, accentText, bg, accent2);
     localStorage.setItem('mercadoauto_palette', JSON.stringify({accent, accentText, bg, accent2}));
-    toast('Paleta aplicada.');
+    try {
+      user = await api('/company/settings', {method:'PATCH', body: JSON.stringify({
+        palette_accent: accent, palette_accent_text: accentText, palette_bg: bg, palette_accent2: accent2
+      })});
+      toast('Paleta aplicada e salva na sua conta.');
+    } catch(e){ toast('Paleta aplicada neste navegador, mas falhou ao salvar: ' + e.message, 'error'); }
   };
-  document.getElementById('btnResetPalette').onclick = () => {
+  document.getElementById('btnResetPalette').onclick = async () => {
     applyPalette('#FFE600', '#1a1a1a', '#111318', '#2d3748');
     document.getElementById('colAccent').value = '#FFE600';
     document.getElementById('colAccentText').value = '#1a1a1a';
     document.getElementById('colBg').value = '#111318';
     document.getElementById('colAccent2').value = '#2d3748';
     localStorage.removeItem('mercadoauto_palette');
+    try {
+      user = await api('/company/settings', {method:'PATCH', body: JSON.stringify({
+        palette_accent: '', palette_accent_text: '', palette_bg: '', palette_accent2: ''
+      })});
+    } catch(e){ /* silencioso */ }
     toast('Paleta padrão restaurada.');
   };
   (function loadPalette(){
@@ -1310,19 +1362,33 @@
     }
   })();
 
-  // logo (client-side apenas — sem endpoint de logo no backend hoje)
+  // logo da empresa (enviada para o backend, aparece em qualquer navegador/dispositivo)
   const logoDrop = document.getElementById('logoDrop');
   const logoInput = document.getElementById('logoInput');
   logoDrop.onclick = () => logoInput.click();
-  logoInput.onchange = () => {
-    if (!logoInput.files[0]) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      localStorage.setItem('mercadoauto_logo', e.target.result);
-      logoDrop.innerHTML = '<img src="' + e.target.result + '" style="max-height:60px;">';
-      toast('Logo atualizada (salva neste navegador).');
-    };
-    reader.readAsDataURL(logoInput.files[0]);
+  logoInput.onchange = async () => {
+    const file = logoInput.files[0];
+    logoInput.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')){ toast('Selecione um arquivo de imagem.', 'error'); return; }
+    logoDrop.textContent = 'Enviando...';
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const up = await api('/uploads', {method:'POST', body: fd});
+      const res = await api('/company/settings', {method:'PATCH', body: JSON.stringify({logo_file_id: up.id})});
+      user = res;
+      const logoUrl = API_BASE + '/api/public/files/' + up.id;
+      logoDrop.innerHTML = '<img src="' + logoUrl + '" style="max-height:60px;">';
+      document.getElementById('topnavLogoMark').classList.add('hidden');
+      const navImg = document.getElementById('topnavLogoImg');
+      navImg.src = logoUrl;
+      navImg.classList.remove('hidden');
+      toast('Logo atualizada.');
+    } catch(e){
+      logoDrop.textContent = 'Clique para enviar logo';
+      toast('Falha ao enviar logo: ' + e.message, 'error');
+    }
   };
 
   // empresa: nome + template
