@@ -122,6 +122,7 @@
   .grid4 .card.danger::before{background:var(--danger);}
   .grid4 .card .num{font-size:28px;font-weight:800;}
   .grid4 .card .lbl{color:var(--muted);font-size:11.5px;margin-top:4px;text-transform:uppercase;letter-spacing:.02em;font-weight:700;}
+  .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
   table{width:100%;border-collapse:collapse;font-size:14px;}
   table.table-fixed{table-layout:fixed;}
   .col-sku{width:130px;}
@@ -134,7 +135,16 @@
   td.col-product{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   th.col-actions,td.col-actions{text-align:right;}
   tr:last-child td{border-bottom:none;}
-  .empty{color:var(--muted);text-align:center;padding:40px 0;font-size:14px;}
+  .empty{color:var(--muted);text-align:center;padding:48px 20px;font-size:14px;}
+  .empty-icon{font-size:34px;margin-bottom:12px;opacity:.55;}
+  .empty-title{color:var(--text);font-weight:700;font-size:15px;margin-bottom:6px;}
+  .empty-sub{font-size:13px;max-width:400px;margin:0 auto;line-height:1.55;}
+
+  /* ---------- loading skeletons ---------- */
+  .skel{display:inline-block;height:14px;border-radius:6px;background:linear-gradient(90deg,var(--bg2) 25%,var(--accent2) 37%,var(--bg2) 63%);background-size:400% 100%;animation:skel-shimmer 1.4s ease infinite;}
+  @keyframes skel-shimmer{0%{background-position:100% 50%;}100%{background-position:0 50%;}}
+  .skel-thumb{width:40px;height:40px;border-radius:8px;flex-shrink:0;}
+  .skel-text{height:12px;}
   .badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;}
   .badge.published{background:rgba(34,197,94,.15);color:var(--ok);}
   .badge.draft{background:rgba(148,163,184,.15);color:var(--muted);}
@@ -193,6 +203,30 @@
     .two-col{grid-template-columns:1fr;}
     .topnav-user{display:none;}
     .main{padding:20px 16px;}
+  }
+
+  /* ---------- telas de celular ---------- */
+  @media(max-width:600px){
+    .container{padding:0 16px;}
+    .hero{padding:36px 0;}
+    .hero h1{font-size:28px;}
+    .hero p{font-size:14px;}
+    .hero-cta{flex-direction:column;}
+    .hero-cta .btn{width:100%;}
+    .stats,.features,.grid4{grid-template-columns:1fr 1fr;gap:10px;}
+    .row2,.row3{grid-template-columns:1fr;}
+    .main{padding:16px 12px;}
+    .main h1{font-size:20px;}
+    .topnav-inner{padding:0 12px;gap:12px;height:56px;}
+    .toolbar{flex-direction:column;align-items:stretch;gap:10px;}
+    .toolbar .btn{width:100%;}
+    .tabs{flex-wrap:wrap;}
+    .modal{padding:20px;}
+    .auth-panel{padding:24px 20px;}
+    .auth-visual{padding:36px 24px;}
+    .copy-row{flex-direction:column;align-items:stretch;}
+    .card{padding:16px;}
+    table.table-fixed{min-width:560px;}
   }
 </style>
 </head>
@@ -389,11 +423,15 @@
       </div>
       <div class="card">
         <div class="toolbar"><h3 style="margin:0;">Anúncios recentes</h3><button class="btn btn-ghost" id="btnSeeAll">Ver todos</button></div>
-        <table class="table-fixed">
+        <div class="table-scroll"><table class="table-fixed">
           <thead><tr><th class="col-product">Produto</th><th class="col-sku">SKU</th><th class="col-price">Preço</th><th class="col-status">Status</th></tr></thead>
           <tbody id="recentBody"></tbody>
-        </table>
-        <div class="empty hidden" id="recentEmpty">Nenhum anúncio ainda. Conecte sua conta do Mercado Livre em Configurações para importar seus anúncios reais.</div>
+        </table></div>
+        <div class="empty hidden" id="recentEmpty">
+          <div class="empty-icon">📦</div>
+          <div class="empty-title">Nenhum anúncio ainda</div>
+          <div class="empty-sub">Conecte sua conta do Mercado Livre em Configurações para importar seus anúncios reais.</div>
+        </div>
       </div>
     </section>
 
@@ -407,11 +445,15 @@
         <button class="tab" data-status="draft">Rascunhos</button>
       </div>
       <div class="card">
-        <table class="table-fixed">
+        <div class="table-scroll"><table class="table-fixed">
           <thead><tr><th class="col-product">Produto</th><th class="col-sku">SKU</th><th class="col-price">Preço</th><th class="col-qty">Estoque</th><th class="col-status">Status</th><th class="col-actions">Ações</th></tr></thead>
           <tbody id="prodBody"></tbody>
-        </table>
-        <div class="empty hidden" id="prodEmpty">Nenhum anúncio ainda. Conecte sua conta do Mercado Livre em Configurações e clique em "Sincronizar anúncios agora" para importar seus anúncios reais — ou crie um novo anúncio com IA.</div>
+        </table></div>
+        <div class="empty hidden" id="prodEmpty">
+          <div class="empty-icon">🛒</div>
+          <div class="empty-title">Nenhum anúncio ainda</div>
+          <div class="empty-sub">Conecte sua conta do Mercado Livre em Configurações e clique em "Sincronizar anúncios agora" para importar seus anúncios reais — ou crie um novo anúncio com IA.</div>
+        </div>
       </div>
     </section>
 
@@ -491,11 +533,15 @@
       <h1>Automação via API</h1>
       <div class="card">
         <div class="section-title">Sistemas internos conectados</div>
-        <table class="table-fixed">
+        <div class="table-scroll"><table class="table-fixed">
           <thead><tr><th class="col-product">Sistema</th><th class="col-product">Endpoint</th><th class="col-sku">Sincronização</th><th class="col-status">Status</th><th class="col-actions">Ações</th></tr></thead>
           <tbody id="erpBody"></tbody>
-        </table>
-        <div class="empty" id="erpEmpty">Nenhum sistema conectado ainda. Cadastre abaixo a API do seu sistema interno.</div>
+        </table></div>
+        <div class="empty" id="erpEmpty">
+          <div class="empty-icon">🔌</div>
+          <div class="empty-title">Nenhum sistema conectado ainda</div>
+          <div class="empty-sub">Cadastre abaixo a API do seu sistema interno.</div>
+        </div>
       </div>
       <div class="card" style="margin-top:16px;">
         <div class="section-title">Conectar novo sistema</div>
@@ -1085,7 +1131,23 @@
   };
 
   // ---------- painel ----------
+  function skeletonRows(bodyId, cols, n, emptyId){
+    const body = document.getElementById(bodyId);
+    if (!body) return;
+    if (emptyId){ const e = document.getElementById(emptyId); if (e) e.classList.add('hidden'); }
+    let html = '';
+    for (let i = 0; i < n; i++){
+      html += '<tr>';
+      for (let c = 0; c < cols; c++){
+        html += '<td><span class="skel skel-text" style="width:' + (c === 0 ? '80%' : '55%') + ';"></span></td>';
+      }
+      html += '</tr>';
+    }
+    body.innerHTML = html;
+  }
+
   async function refreshStats(){
+    skeletonRows('recentBody', 4, 3, 'recentEmpty');
     try {
       const s = await api('/stats');
       document.getElementById('statTotal').textContent = s.total_products;
@@ -1163,6 +1225,7 @@
   });
 
   async function refreshProducts(){
+    skeletonRows('prodBody', 6, 4, 'prodEmpty');
     try {
       const q = currentStatusFilter ? ('?status=' + currentStatusFilter) : '';
       products = await api('/products' + q);
@@ -1284,6 +1347,7 @@
     });
   }
   async function refreshErpConnections(){
+    skeletonRows('erpBody', 5, 2, 'erpEmpty');
     try { erpSystems = await api('/erp-connections'); renderErp(); }
     catch(e){ console.error(e); }
   }
