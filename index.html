@@ -24,6 +24,7 @@
   button{font-family:inherit;cursor:pointer;}
   input,select,textarea{font-family:inherit;background:var(--bg2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px 12px;width:100%;}
   input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);}
+  input[type="color"]{width:56px;height:40px;padding:4px;cursor:pointer;}
   label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px;}
   .hidden{display:none !important;}
   .btn{display:inline-flex;align-items:center;gap:6px;justify-content:center;border:none;border-radius:8px;padding:11px 18px;font-weight:600;font-size:14px;}
@@ -234,6 +235,17 @@
 
 <div class="toast-wrap" id="toastWrap"></div>
 
+<div class="overlay hidden" id="overlayConfirm">
+  <div class="modal" style="max-width:380px;">
+    <h2 id="confirmTitle" style="margin:6px 0 4px;font-size:18px;">Confirmar</h2>
+    <p id="confirmMsg" style="color:var(--muted);font-size:14px;margin:0 0 20px;"></p>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn btn-ghost" id="confirmCancelBtn">Cancelar</button>
+      <button class="btn btn-danger" id="confirmOkBtn">Confirmar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ============ LANDING ============ -->
 <div id="view-landing">
   <div class="container">
@@ -247,8 +259,8 @@
 
     <div class="hero">
       <div class="eyebrow">Publicação automática · Mercado Livre</div>
-      <h1>Seus anúncios publicados sozinhos, com precisão de robô.</h1>
-      <p>MercadoAuto conecta seu estoque à sua conta do Mercado Livre e usa IA para escrever, precificar e publicar cada anúncio — sem retrabalho manual.</p>
+      <h1>Do estoque ao Mercado Livre, sem digitar anúncio por anúncio.</h1>
+      <p>Importe sua planilha ou ligue direto no seu ERP. O MercadoAuto organiza os dados, sugere título, descrição e preço, e publica na sua conta oficial do Mercado Livre.</p>
       <div class="hero-cta">
         <button class="btn btn-primary" id="btnHeroRegister">Começar agora →</button>
         <button class="btn btn-ghost" id="btnHeroLogin">Já tenho conta</button>
@@ -256,25 +268,25 @@
     </div>
 
     <div class="stats">
-      <div class="card"><div class="num">128</div><div class="lbl">Anúncios ativos / empresa</div></div>
-      <div class="card"><div class="num">98%</div><div class="lbl">Publicados sem erro</div></div>
-      <div class="card"><div class="num">4min</div><div class="lbl">Tempo médio por anúncio</div></div>
-      <div class="card"><div class="num">R$ 42k</div><div class="lbl">Vendas médias / mês</div></div>
+      <div class="card"><div class="num">Sem limite</div><div class="lbl">de anúncios publicados</div></div>
+      <div class="card"><div class="num">OAuth oficial</div><div class="lbl">conexão direta com sua conta do Mercado Livre</div></div>
+      <div class="card"><div class="num">Minutos</div><div class="lbl">para importar todo o seu catálogo</div></div>
+      <div class="card"><div class="num">100%</div><div class="lbl">dos seus dados ficam só na sua conta</div></div>
     </div>
 
     <div class="features">
-      <div class="card"><div class="idx">01 / IA</div><h3>Título e descrição gerados</h3><p>A IA escreve conteúdo otimizado para busca a partir dos dados brutos do produto.</p></div>
-      <div class="card"><div class="idx">02 / Importação</div><h3>Planilha ou ERP</h3><p>Importe centenas de produtos de uma vez via CSV, Excel ou integração direta com seu sistema.</p></div>
-      <div class="card"><div class="idx">03 / OAuth ML</div><h3>Conexão oficial</h3><p>Conecte sua própria conta do Mercado Livre com Client ID e Secret gerados por você.</p></div>
-      <div class="card"><div class="idx">04 / Painel</div><h3>Controle total</h3><p>Acompanhe status de cada anúncio: rascunho, publicado ou com erro — em tempo real.</p></div>
+      <div class="card"><div class="idx">01</div><h3>Título e descrição prontos</h3><p>Você manda o nome bruto da peça — a gente devolve um anúncio pronto pra publicar, com título, descrição e sugestão de preço baseada em anúncios reais do Mercado Livre.</p></div>
+      <div class="card"><div class="idx">02</div><h3>Planilha ou ERP</h3><p>Suba um CSV ou Excel, ou ligue direto no seu sistema interno. Sem cadastrar peça por peça.</p></div>
+      <div class="card"><div class="idx">03</div><h3>Conexão oficial</h3><p>Você conecta a sua própria conta do Mercado Livre via OAuth — nunca pedimos sua senha, e você desconecta quando quiser.</p></div>
+      <div class="card"><div class="idx">04</div><h3>Painel completo</h3><p>Veja o que está publicado, em rascunho ou com erro, tudo num só lugar.</p></div>
     </div>
 
     <div class="final-cta">
-      <h2>Pronto para automatizar seus anúncios?</h2>
+      <h2>Cansou de cadastrar anúncio um por um?</h2>
       <button class="btn btn-primary" id="btnFinalRegister">Criar conta grátis</button>
     </div>
   </div>
-  <footer>MercadoAuto — SaaS multi-empresa para publicação automática no Mercado Livre.</footer>
+  <footer>MercadoAuto — publicação automática de autopeças no Mercado Livre.</footer>
 </div>
 
 <!-- ============ LOGIN (tela dividida) ============ -->
@@ -282,7 +294,7 @@
   <div class="auth-visual">
     <div class="logo"><div class="mark">M</div> MercadoAuto</div>
     <div class="eyebrow" style="color:var(--accent);font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;">Publicação automática · Mercado Livre</div>
-    <h2>Seus anúncios publicados sozinhos, com precisão de robô.</h2>
+    <h2>Do estoque ao Mercado Livre, sem digitar anúncio por anúncio.</h2>
     <p>Conecte seu estoque à sua conta do Mercado Livre e deixe a IA cuidar de título, preço e publicação — sem retrabalho manual.</p>
   </div>
   <div class="auth-panel">
@@ -477,10 +489,16 @@
           <label>Categoria</label>
           <select id="npCategory">
             <option value="">Selecione</option>
-            <option>Casa, Móveis e Decoração</option>
-            <option>Eletrônicos, Áudio e Vídeo</option>
-            <option>Esportes e Fitness</option>
-            <option>Moda e Acessórios</option>
+            <option>Peças de Motor e Câmbio</option>
+            <option>Freios e Suspensão</option>
+            <option>Elétrica e Iluminação</option>
+            <option>Carroceria e Acabamento</option>
+            <option>Pneus, Rodas e Acessórios</option>
+            <option>Som e Multimídia Automotiva</option>
+            <option>Ferramentas e Equipamentos</option>
+            <option>Óleos, Fluidos e Filtros</option>
+            <option>Peças de Moto</option>
+            <option>Outros</option>
           </select>
           <label>Condição</label>
           <select id="npCondition"><option value="new">Novo</option><option value="used">Usado</option></select>
@@ -745,6 +763,25 @@
     el.textContent = msg;
     wrap.appendChild(el);
     setTimeout(()=>el.remove(), 4500);
+  }
+
+  // ---------- confirmação (substitui o confirm() nativo do navegador) ----------
+  function confirmDialog(message, title){
+    return new Promise((resolve) => {
+      document.getElementById('confirmTitle').textContent = title || 'Confirmar';
+      document.getElementById('confirmMsg').textContent = message;
+      const overlay = document.getElementById('overlayConfirm');
+      const okBtn = document.getElementById('confirmOkBtn');
+      const cancelBtn = document.getElementById('confirmCancelBtn');
+      overlay.classList.remove('hidden');
+      const cleanup = (result) => {
+        overlay.classList.add('hidden');
+        okBtn.onclick = null; cancelBtn.onclick = null;
+        resolve(result);
+      };
+      okBtn.onclick = () => cleanup(true);
+      cancelBtn.onclick = () => cleanup(false);
+    });
   }
 
   // ---------- API helper ----------
@@ -1162,10 +1199,10 @@
   }
 
   function fmtPrice(v){ return 'R$ ' + Number(v||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}); }
-  function statusBadge(status){
-    const label = status === 'published' ? 'Publicado' : status === 'error' ? 'Erro' : 'Rascunho';
+  function statusBadge(status, mock){
+    const label = status === 'published' ? (mock ? 'Publicado (simulado)' : 'Publicado') : status === 'error' ? 'Erro' : 'Rascunho';
     const icon = status === 'published' ? '✓' : status === 'error' ? '!' : '●';
-    return '<span class="badge ' + status + '">' + icon + ' ' + label + '</span>';
+    return '<span class="badge ' + status + '" title="' + (mock ? 'Publicação simulada — conecte sua conta do Mercado Livre em Configurações para publicar de verdade.' : '') + '">' + icon + ' ' + label + '</span>';
   }
 
   function productThumbUrl(p){
@@ -1187,9 +1224,9 @@
     const tr = document.createElement('tr');
     const title = escapeHtml(p.ai_title || p.title);
     if (compact){
-      tr.innerHTML = '<td class="col-product" title="' + title + '">' + productCellHtml(p, title) + '</td><td class="col-sku">' + escapeHtml(p.sku) + '</td><td class="col-price">' + fmtPrice(p.price) + '</td><td class="col-status">' + statusBadge(p.status) + '</td>';
+      tr.innerHTML = '<td class="col-product" title="' + title + '">' + productCellHtml(p, title) + '</td><td class="col-sku">' + escapeHtml(p.sku) + '</td><td class="col-price">' + fmtPrice(p.price) + '</td><td class="col-status">' + statusBadge(p.status, p.ml_mock) + '</td>';
     } else {
-      tr.innerHTML = '<td class="col-product" title="' + title + '">' + productCellHtml(p, title) + '</td><td class="col-sku">' + escapeHtml(p.sku) + '</td><td class="col-price">' + fmtPrice(p.price) + '</td><td class="col-qty">' + p.quantity + '</td><td class="col-status">' + statusBadge(p.status) + '</td><td class="col-actions"></td>';
+      tr.innerHTML = '<td class="col-product" title="' + title + '">' + productCellHtml(p, title) + '</td><td class="col-sku">' + escapeHtml(p.sku) + '</td><td class="col-price">' + fmtPrice(p.price) + '</td><td class="col-qty">' + p.quantity + '</td><td class="col-status">' + statusBadge(p.status, p.ml_mock) + '</td><td class="col-actions"></td>';
       const actionsTd = tr.lastElementChild;
       const actionsWrap = document.createElement('div');
       actionsWrap.className = 'row-actions';
@@ -1237,11 +1274,16 @@
   }
 
   async function publishProduct(id){
-    try { await api('/products/' + id + '/publish', {method:'POST'}); toast('Anúncio publicado.'); refreshProducts(); refreshStats(); }
-    catch(e){ toast(e.message, 'error'); }
+    try {
+      const p = await api('/products/' + id + '/publish', {method:'POST'});
+      toast(p.ml_mock
+        ? 'Anúncio publicado em modo simulado — conecte sua conta do Mercado Livre em Configurações para publicar de verdade.'
+        : 'Anúncio publicado no Mercado Livre.');
+      refreshProducts(); refreshStats();
+    } catch(e){ toast(e.message, 'error'); }
   }
   async function deleteProduct(id){
-    if (!confirm('Excluir este anúncio?')) return;
+    if (!await confirmDialog('Essa ação não pode ser desfeita.', 'Excluir este anúncio?')) return;
     try { await api('/products/' + id, {method:'DELETE'}); toast('Anúncio excluído.'); refreshProducts(); refreshStats(); }
     catch(e){ toast(e.message, 'error'); }
   }
