@@ -517,6 +517,12 @@
           </div>
           <input type="file" id="npPhotoInput" accept="image/*" multiple class="hidden">
 
+          <div id="npMlAttrsWrap" class="hidden" style="margin-top:6px;">
+            <label>Campos obrigatórios do Mercado Livre para esta categoria</label>
+            <div id="npMlAttrsHint" style="font-size:12px;color:var(--muted);margin:-2px 0 8px;"></div>
+            <div id="npMlAttrsFields"></div>
+          </div>
+
           <label>Vídeo do produto (opcional)</label>
           <input id="npVideo" placeholder="Link do YouTube (ex: https://youtube.com/watch?v=...)">
           <div class="photo-hint" style="margin-top:6px;">Vídeos aumentam a conversão de vendas. O Mercado Livre aceita vídeos hospedados no YouTube.</div>
@@ -730,6 +736,12 @@
 
     <label>Vídeo do produto (opcional)</label>
     <input id="editVideo" placeholder="Link do YouTube (ex: https://youtube.com/watch?v=...)">
+
+    <div id="editMlAttrsWrap" class="hidden" style="margin-top:6px;">
+      <label>Campos obrigatórios do Mercado Livre para esta categoria</label>
+      <div id="editMlAttrsHint" style="font-size:12px;color:var(--muted);margin:-2px 0 8px;">Buscando categoria e campos obrigatórios...</div>
+      <div id="editMlAttrsFields"></div>
+    </div>
 
     <div style="display:flex;gap:10px;margin-top:16px;">
       <button class="btn btn-primary" id="btnSaveEdit" style="flex:1;">Salvar alterações</button>
@@ -1088,6 +1100,9 @@
     document.getElementById('npUseAi').checked = true;
     document.getElementById('npVideo').value = '';
     npPhotos = [];
+    npMlAttributeValues = {};
+    document.getElementById('npMlAttrsWrap').classList.add('hidden');
+    document.getElementById('npMlAttrsFields').innerHTML = '';
     renderThumbRow('npPhotoRow', 'npPhotoAdd', npPhotos, removeNpPhoto);
     document.getElementById('npPreview').innerHTML = '<h3>Pré-visualização</h3><div class="preview-empty">Preencha os dados ao lado e clique em<br><strong>"Gerar e revisar anúncio"</strong>.</div>';
   }
@@ -1331,7 +1346,8 @@
       condition: document.getElementById('npCondition').value,
       image_ids: npPhotos.map(p => p.id),
       video_url: document.getElementById('npVideo').value.trim() || null,
-      use_ai: document.getElementById('npUseAi').checked
+      use_ai: document.getElementById('npUseAi').checked,
+      ml_attributes: npMlAttributeValues
     };
     if (!payload.title || !payload.sku || !payload.price){
       toast('Preencha SKU, título e preço.', 'error'); return;
@@ -1650,8 +1666,75 @@
   };
 
   // ---------- editar anúncio ----------
+  let currentMlAttributeValues = {};
+  let npMlAttributeValues = {};
+
+  async function loadMlAttributesInto(title, savedValues, valuesStore, wrapId, hintId, fieldsId){
+    const wrap = document.getElementById(wrapId);
+    const hint = document.getElementById(hintId);
+    const fieldsEl = document.getElementById(fieldsId);
+    if (!title || !title.trim()){ wrap.classList.add('hidden'); return; }
+    wrap.classList.remove('hidden');
+    hint.textContent = 'Buscando categoria e campos obrigatórios no Mercado Livre...';
+    fieldsEl.innerHTML = '';
+    try {
+      const r = await api('/products/category-attributes?title=' + encodeURIComponent(title));
+      if (!r.category_id || !r.attributes || !r.attributes.length){
+        hint.textContent = 'Nenhum campo extra obrigatório encontrado para esta categoria (ou categoria não identificada a partir do título).';
+        return;
+      }
+      hint.textContent = 'Categoria detectada — preencha os campos abaixo (exigidos pelo Mercado Livre para publicar):';
+      r.attributes.forEach(attr => {
+        const row = document.createElement('div');
+        row.style.marginBottom = '10px';
+        const label = document.createElement('label');
+        label.textContent = attr.name || attr.id;
+        row.appendChild(label);
+        let input;
+        if (attr.options && attr.options.length){
+          input = document.createElement('select');
+          const optBlank = document.createElement('option');
+          optBlank.value = ''; optBlank.textContent = 'Selecione...';
+          input.appendChild(optBlank);
+          attr.options.forEach(opt => {
+            const o = document.createElement('option');
+            o.value = opt.name; o.textContent = opt.name;
+            input.appendChild(o);
+          });
+        } else {
+          input = document.createElement('input');
+          input.type = 'text';
+        }
+        input.dataset.attrId = attr.id;
+        input.className = 'ml-attr-input';
+        if (savedValues && savedValues[attr.id]) input.value = savedValues[attr.id];
+        if (savedValues && savedValues[attr.id]) valuesStore[attr.id] = savedValues[attr.id];
+        input.addEventListener('input', () => { valuesStore[attr.id] = input.value; });
+        row.appendChild(input);
+        fieldsEl.appendChild(row);
+      });
+    } catch(e){
+      hint.textContent = 'Não foi possível buscar os campos obrigatórios agora (' + (e.message || 'erro') + ').';
+    }
+  }
+
+  function loadMlAttributesFor(title, savedValues){
+    currentMlAttributeValues = {};
+    return loadMlAttributesInto(title, savedValues, currentMlAttributeValues, 'editMlAttrsWrap', 'editMlAttrsHint', 'editMlAttrsFields');
+  }
+
+  let npAttrsTimer = null;
+  document.getElementById('npTitle').addEventListener('input', (e) => {
+    clearTimeout(npAttrsTimer);
+    const title = e.target.value;
+    npAttrsTimer = setTimeout(() => {
+      loadMlAttributesInto(title, npMlAttributeValues, npMlAttributeValues, 'npMlAttrsWrap', 'npMlAttrsHint', 'npMlAttrsFields');
+    }, 600);
+  });
+
   function openEdit(p){
     currentEditId = p.id;
+    currentMlAttributeValues = {};
     document.getElementById('editSku').value = p.sku;
     document.getElementById('editTitle').value = p.ai_title || p.title;
     document.getElementById('editDesc').value = p.ai_description || p.description;
@@ -1664,6 +1747,7 @@
       ...(p.external_image_urls || []).map(u => ({id:null, url:u, warn:false, external:true})),
     ];
     renderThumbRow('editPhotoRow','editPhotoAdd',editPhotos,removeEditPhoto);
+    loadMlAttributesFor(p.ai_title || p.title, p.ml_attributes || {});
     document.getElementById('overlayEdit').classList.remove('hidden');
   }
   document.getElementById('closeEdit').onclick = () => document.getElementById('overlayEdit').classList.add('hidden');
@@ -1691,7 +1775,8 @@
         quantity: parseInt(document.getElementById('editQty').value || '0', 10),
         image_ids: editPhotos.filter(p => !p.external).map(p => p.id),
         external_image_urls: editPhotos.filter(p => p.external).map(p => p.url),
-        video_url: document.getElementById('editVideo').value.trim()
+        video_url: document.getElementById('editVideo').value.trim(),
+        ml_attributes: currentMlAttributeValues
       })});
       toast('Alterações salvas.');
       document.getElementById('overlayEdit').classList.add('hidden');
@@ -1706,6 +1791,7 @@
       document.getElementById('editTitle').value = r.title;
       document.getElementById('editDesc').value = r.description;
       if (r.suggested_price) document.getElementById('editPrice').value = r.suggested_price;
+      loadMlAttributesFor(r.title, currentMlAttributeValues);
       toast(r.found_reference ? ('Referência encontrada (' + r.sample_count + ' anúncios parecidos).') : 'Gerado sem referência real encontrada.');
     } catch(e){ toast(e.message, 'error'); }
     finally { btn.disabled = false; btn.textContent = '✨ Gerar com IA (buscar referência real no Mercado Livre)'; }
