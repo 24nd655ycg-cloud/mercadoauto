@@ -24,6 +24,7 @@
   button{font-family:inherit;cursor:pointer;}
   input,select,textarea{font-family:inherit;background:var(--bg2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px 12px;width:100%;}
   input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);}
+  input[type="color"]{width:56px;height:40px;padding:4px;cursor:pointer;}
   label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px;}
   .hidden{display:none !important;}
   .btn{display:inline-flex;align-items:center;gap:6px;justify-content:center;border:none;border-radius:8px;padding:11px 18px;font-weight:600;font-size:14px;}
@@ -97,6 +98,7 @@
   .topnav{position:sticky;top:0;z-index:40;background:var(--bg2);border-bottom:1px solid var(--border);}
   .topnav-inner{max-width:1440px;margin:0 auto;padding:0 20px;display:flex;align-items:center;gap:24px;height:64px;}
   .topnav .logo{flex-shrink:0;}
+  #topnavLogoImg{width:28px;height:28px;border-radius:8px;object-fit:cover;}
   .topnav-links{display:flex;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;}
   .topnav-links::-webkit-scrollbar{display:none;}
   .nav-btn{display:inline-flex;align-items:center;gap:7px;white-space:nowrap;text-align:left;background:none;border:none;color:var(--muted);padding:9px 14px;border-radius:8px;font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;}
@@ -121,6 +123,7 @@
   .grid4 .card.danger::before{background:var(--danger);}
   .grid4 .card .num{font-size:28px;font-weight:800;}
   .grid4 .card .lbl{color:var(--muted);font-size:11.5px;margin-top:4px;text-transform:uppercase;letter-spacing:.02em;font-weight:700;}
+  .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
   table{width:100%;border-collapse:collapse;font-size:14px;}
   table.table-fixed{table-layout:fixed;}
   .col-sku{width:130px;}
@@ -133,9 +136,18 @@
   td.col-product{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   th.col-actions,td.col-actions{text-align:right;}
   tr:last-child td{border-bottom:none;}
-  .empty{color:var(--muted);text-align:center;padding:40px 0;font-size:14px;}
+  .empty{color:var(--muted);text-align:center;padding:48px 20px;font-size:14px;}
   tr.zero-stock{background:rgba(239,68,68,.08);}
   tr.zero-stock td.col-qty{color:var(--danger);font-weight:700;}
+  .empty-icon{font-size:34px;margin-bottom:12px;opacity:.55;}
+  .empty-title{color:var(--text);font-weight:700;font-size:15px;margin-bottom:6px;}
+  .empty-sub{font-size:13px;max-width:400px;margin:0 auto;line-height:1.55;}
+
+  /* ---------- loading skeletons ---------- */
+  .skel{display:inline-block;height:14px;border-radius:6px;background:linear-gradient(90deg,var(--bg2) 25%,var(--accent2) 37%,var(--bg2) 63%);background-size:400% 100%;animation:skel-shimmer 1.4s ease infinite;}
+  @keyframes skel-shimmer{0%{background-position:100% 50%;}100%{background-position:0 50%;}}
+  .skel-thumb{width:40px;height:40px;border-radius:8px;flex-shrink:0;}
+  .skel-text{height:12px;}
   .badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;}
   .badge.published{background:rgba(34,197,94,.15);color:var(--ok);}
   .badge.draft{background:rgba(148,163,184,.15);color:var(--muted);}
@@ -195,11 +207,46 @@
     .topnav-user{display:none;}
     .main{padding:20px 16px;}
   }
+
+  /* ---------- telas de celular ---------- */
+  @media(max-width:600px){
+    .container{padding:0 16px;}
+    .hero{padding:36px 0;}
+    .hero h1{font-size:28px;}
+    .hero p{font-size:14px;}
+    .hero-cta{flex-direction:column;}
+    .hero-cta .btn{width:100%;}
+    .stats,.features,.grid4{grid-template-columns:1fr 1fr;gap:10px;}
+    .row2,.row3{grid-template-columns:1fr;}
+    .main{padding:16px 12px;}
+    .main h1{font-size:20px;}
+    .topnav-inner{padding:0 12px;gap:12px;height:56px;}
+    .toolbar{flex-direction:column;align-items:stretch;gap:10px;}
+    .toolbar .btn{width:100%;}
+    .tabs{flex-wrap:wrap;}
+    .modal{padding:20px;}
+    .auth-panel{padding:24px 20px;}
+    .auth-visual{padding:36px 24px;}
+    .copy-row{flex-direction:column;align-items:stretch;}
+    .card{padding:16px;}
+    table.table-fixed{min-width:560px;}
+  }
 </style>
 </head>
 <body>
 
 <div class="toast-wrap" id="toastWrap"></div>
+
+<div class="overlay hidden" id="overlayConfirm">
+  <div class="modal" style="max-width:380px;">
+    <h2 id="confirmTitle" style="margin:6px 0 4px;font-size:18px;">Confirmar</h2>
+    <p id="confirmMsg" style="color:var(--muted);font-size:14px;margin:0 0 20px;"></p>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn btn-ghost" id="confirmCancelBtn">Cancelar</button>
+      <button class="btn btn-danger" id="confirmOkBtn">Confirmar</button>
+    </div>
+  </div>
+</div>
 
 <!-- ============ LANDING ============ -->
 <div id="view-landing">
@@ -214,8 +261,8 @@
 
     <div class="hero">
       <div class="eyebrow">Publicação automática · Mercado Livre</div>
-      <h1>Seus anúncios publicados sozinhos, com precisão de robô.</h1>
-      <p>MercadoAuto conecta seu estoque à sua conta do Mercado Livre e usa IA para escrever, precificar e publicar cada anúncio — sem retrabalho manual.</p>
+      <h1>Do estoque ao Mercado Livre, sem digitar anúncio por anúncio.</h1>
+      <p>Importe sua planilha ou ligue direto no seu ERP. O MercadoAuto organiza os dados, sugere título, descrição e preço, e publica na sua conta oficial do Mercado Livre.</p>
       <div class="hero-cta">
         <button class="btn btn-primary" id="btnHeroRegister">Começar agora →</button>
         <button class="btn btn-ghost" id="btnHeroLogin">Já tenho conta</button>
@@ -223,25 +270,25 @@
     </div>
 
     <div class="stats">
-      <div class="card"><div class="num">128</div><div class="lbl">Anúncios ativos / empresa</div></div>
-      <div class="card"><div class="num">98%</div><div class="lbl">Publicados sem erro</div></div>
-      <div class="card"><div class="num">4min</div><div class="lbl">Tempo médio por anúncio</div></div>
-      <div class="card"><div class="num">R$ 42k</div><div class="lbl">Vendas médias / mês</div></div>
+      <div class="card"><div class="num">Sem limite</div><div class="lbl">de anúncios publicados</div></div>
+      <div class="card"><div class="num">OAuth oficial</div><div class="lbl">conexão direta com sua conta do Mercado Livre</div></div>
+      <div class="card"><div class="num">Minutos</div><div class="lbl">para importar todo o seu catálogo</div></div>
+      <div class="card"><div class="num">100%</div><div class="lbl">dos seus dados ficam só na sua conta</div></div>
     </div>
 
     <div class="features">
-      <div class="card"><div class="idx">01 / IA</div><h3>Título e descrição gerados</h3><p>A IA escreve conteúdo otimizado para busca a partir dos dados brutos do produto.</p></div>
-      <div class="card"><div class="idx">02 / Importação</div><h3>Planilha ou ERP</h3><p>Importe centenas de produtos de uma vez via CSV, Excel ou integração direta com seu sistema.</p></div>
-      <div class="card"><div class="idx">03 / OAuth ML</div><h3>Conexão oficial</h3><p>Conecte sua própria conta do Mercado Livre com Client ID e Secret gerados por você.</p></div>
-      <div class="card"><div class="idx">04 / Painel</div><h3>Controle total</h3><p>Acompanhe status de cada anúncio: rascunho, publicado ou com erro — em tempo real.</p></div>
+      <div class="card"><div class="idx">01</div><h3>Título e descrição prontos</h3><p>Você manda o nome bruto da peça — a gente devolve um anúncio pronto pra publicar, com título, descrição e sugestão de preço baseada em anúncios reais do Mercado Livre.</p></div>
+      <div class="card"><div class="idx">02</div><h3>Planilha ou ERP</h3><p>Suba um CSV ou Excel, ou ligue direto no seu sistema interno. Sem cadastrar peça por peça.</p></div>
+      <div class="card"><div class="idx">03</div><h3>Conexão oficial</h3><p>Você conecta a sua própria conta do Mercado Livre via OAuth — nunca pedimos sua senha, e você desconecta quando quiser.</p></div>
+      <div class="card"><div class="idx">04</div><h3>Painel completo</h3><p>Veja o que está publicado, em rascunho ou com erro, tudo num só lugar.</p></div>
     </div>
 
     <div class="final-cta">
-      <h2>Pronto para automatizar seus anúncios?</h2>
+      <h2>Cansou de cadastrar anúncio um por um?</h2>
       <button class="btn btn-primary" id="btnFinalRegister">Criar conta grátis</button>
     </div>
   </div>
-  <footer>MercadoAuto — SaaS multi-empresa para publicação automática no Mercado Livre.</footer>
+  <footer>MercadoAuto — publicação automática de autopeças no Mercado Livre.</footer>
 </div>
 
 <!-- ============ LOGIN (tela dividida) ============ -->
@@ -249,7 +296,7 @@
   <div class="auth-visual">
     <div class="logo"><div class="mark">M</div> MercadoAuto</div>
     <div class="eyebrow" style="color:var(--accent);font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;">Publicação automática · Mercado Livre</div>
-    <h2>Seus anúncios publicados sozinhos, com precisão de robô.</h2>
+    <h2>Do estoque ao Mercado Livre, sem digitar anúncio por anúncio.</h2>
     <p>Conecte seu estoque à sua conta do Mercado Livre e deixe a IA cuidar de título, preço e publicação — sem retrabalho manual.</p>
   </div>
   <div class="auth-panel">
@@ -291,9 +338,10 @@
           <label>E-mail</label>
           <input type="email" id="regEmail" required autocomplete="email">
           <label>Senha</label>
-          <input type="password" id="regPassword" required minlength="6" autocomplete="new-password">
+          <input type="password" id="regPassword" required minlength="8" pattern="(?=.*[A-Za-z])(?=.*\d).{8,}" title="Mínimo de 8 caracteres, com pelo menos 1 letra e 1 número." autocomplete="new-password">
+          <div class="photo-hint" style="margin:2px 0 0;">Mínimo de 8 caracteres, com pelo menos 1 letra e 1 número.</div>
           <label>Confirmar senha</label>
-          <input type="password" id="regPasswordConfirm" required minlength="6" autocomplete="new-password">
+          <input type="password" id="regPasswordConfirm" required minlength="8" autocomplete="new-password">
           <div class="err hidden" id="regStep1Err"></div>
           <button type="button" class="btn btn-primary" style="width:100%;margin-top:18px;" id="btnRegNext">Próximo →</button>
         </div>
@@ -356,7 +404,7 @@
 <div id="view-app">
   <header class="topnav">
     <div class="topnav-inner">
-      <div class="logo"><div class="mark">M</div> MercadoAuto</div>
+      <div class="logo"><div class="mark" id="topnavLogoMark">M</div><img id="topnavLogoImg" class="hidden" alt="Logo"> MercadoAuto</div>
       <nav class="topnav-links">
         <button class="nav-btn active" data-view="painel">▦ Painel</button>
         <button class="nav-btn" data-view="anuncios">▢ Anúncios</button>
@@ -389,20 +437,24 @@
       </div>
       <div class="card">
         <div class="toolbar"><h3 style="margin:0;">Anúncios recentes</h3><button class="btn btn-ghost" id="btnSeeAll">Ver todos</button></div>
-        <table class="table-fixed">
+        <div class="table-scroll"><table class="table-fixed">
           <thead><tr><th class="col-product">Produto</th><th class="col-sku">SKU</th><th class="col-price">Preço</th><th class="col-status">Status</th></tr></thead>
           <tbody id="recentBody"></tbody>
-        </table>
-        <div class="empty hidden" id="recentEmpty">Nenhum anúncio ainda. Conecte sua conta do Mercado Livre em Configurações para importar seus anúncios reais.</div>
+        </table></div>
+        <div class="empty hidden" id="recentEmpty">
+          <div class="empty-icon">📦</div>
+          <div class="empty-title">Nenhum anúncio ainda</div>
+          <div class="empty-sub">Conecte sua conta do Mercado Livre em Configurações para importar seus anúncios reais.</div>
+        </div>
       </div>
     </section>
 
     <!-- ANUNCIOS -->
     <section id="page-anuncios" class="hidden">
       <div class="kicker">Catálogo</div>
-      <div class="toolbar" style="margin-bottom:0;"><h1 style="margin:0;">Anúncios</h1><button class="btn btn-primary" id="btnNewProduct2">＋ Novo anúncio</button></div>
-      <div class="toolbar" style="margin-top:8px;">
-        <div class="tabs" style="margin:0;">
+      <div class="toolbar"><h1 style="margin:0;">Anúncios</h1><button class="btn btn-primary" id="btnNewProduct2">＋ Novo anúncio</button></div>
+      <div class="tabs" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div style="display:flex;gap:6px;">
           <button class="tab active" data-status="">Todos</button>
           <button class="tab" data-status="published">Publicados</button>
           <button class="tab" data-status="draft">Rascunhos</button>
@@ -410,11 +462,15 @@
         <input type="text" id="prodSearch" placeholder="Buscar por SKU ou título..." style="max-width:260px;">
       </div>
       <div class="card">
-        <table class="table-fixed">
+        <div class="table-scroll"><table class="table-fixed">
           <thead><tr><th class="col-product">Produto</th><th class="col-sku">SKU</th><th class="col-price">Preço</th><th class="col-qty">Estoque</th><th class="col-status">Status</th><th class="col-actions">Ações</th></tr></thead>
           <tbody id="prodBody"></tbody>
-        </table>
-        <div class="empty hidden" id="prodEmpty">Nenhum anúncio ainda. Conecte sua conta do Mercado Livre em Configurações e clique em "Sincronizar anúncios agora" para importar seus anúncios reais — ou crie um novo anúncio com IA.</div>
+        </table></div>
+        <div class="empty hidden" id="prodEmpty">
+          <div class="empty-icon">🛒</div>
+          <div class="empty-title">Nenhum anúncio ainda</div>
+          <div class="empty-sub">Conecte sua conta do Mercado Livre em Configurações e clique em "Sincronizar anúncios agora" para importar seus anúncios reais — ou crie um novo anúncio com IA.</div>
+        </div>
       </div>
     </section>
 
@@ -438,10 +494,16 @@
           <label>Categoria</label>
           <select id="npCategory">
             <option value="">Selecione</option>
-            <option>Casa, Móveis e Decoração</option>
-            <option>Eletrônicos, Áudio e Vídeo</option>
-            <option>Esportes e Fitness</option>
-            <option>Moda e Acessórios</option>
+            <option>Peças de Motor e Câmbio</option>
+            <option>Freios e Suspensão</option>
+            <option>Elétrica e Iluminação</option>
+            <option>Carroceria e Acabamento</option>
+            <option>Pneus, Rodas e Acessórios</option>
+            <option>Som e Multimídia Automotiva</option>
+            <option>Ferramentas e Equipamentos</option>
+            <option>Óleos, Fluidos e Filtros</option>
+            <option>Peças de Moto</option>
+            <option>Outros</option>
           </select>
           <label>Condição</label>
           <select id="npCondition"><option value="new">Novo</option><option value="used">Usado</option></select>
@@ -494,11 +556,15 @@
       <h1>Automação via API</h1>
       <div class="card">
         <div class="section-title">Sistemas internos conectados</div>
-        <table class="table-fixed">
+        <div class="table-scroll"><table class="table-fixed">
           <thead><tr><th class="col-product">Sistema</th><th class="col-product">Endpoint</th><th class="col-sku">Sincronização</th><th class="col-status">Status</th><th class="col-actions">Ações</th></tr></thead>
           <tbody id="erpBody"></tbody>
-        </table>
-        <div class="empty" id="erpEmpty">Nenhum sistema conectado ainda. Cadastre abaixo a API do seu sistema interno.</div>
+        </table></div>
+        <div class="empty" id="erpEmpty">
+          <div class="empty-icon">🔌</div>
+          <div class="empty-title">Nenhum sistema conectado ainda</div>
+          <div class="empty-sub">Cadastre abaixo a API do seu sistema interno.</div>
+        </div>
       </div>
       <div class="card" style="margin-top:16px;">
         <div class="section-title">Conectar novo sistema</div>
@@ -627,8 +693,9 @@
       <div class="card settings-block">
         <div class="section-title">Conta</div>
         <label>Senha atual</label><input id="cfgCurPassword" type="password" autocomplete="current-password">
-        <label>Nova senha</label><input id="cfgNewPassword" type="password" minlength="6" autocomplete="new-password">
-        <label>Confirmar nova senha</label><input id="cfgNewPasswordConfirm" type="password" minlength="6" autocomplete="new-password">
+        <label>Nova senha</label><input id="cfgNewPassword" type="password" minlength="8" autocomplete="new-password">
+        <div class="photo-hint" style="margin:2px 0 0;">Mínimo de 8 caracteres, com pelo menos 1 letra e 1 número.</div>
+        <label>Confirmar nova senha</label><input id="cfgNewPasswordConfirm" type="password" minlength="8" autocomplete="new-password">
         <div class="err hidden" id="cfgPassErr"></div>
         <button class="btn btn-primary" id="btnChangePassword" style="margin-top:10px;">Trocar senha</button>
         <div style="border-top:1px solid var(--border);margin:20px 0 16px;"></div>
@@ -680,6 +747,7 @@
   let products = [];
   let currentEditId = null;
   let currentStatusFilter = "";
+  let currentSearchQuery = "";
 
   // ---------- cookie/session helpers ----------
   function setCookie(name, value, days){
@@ -701,6 +769,25 @@
     el.textContent = msg;
     wrap.appendChild(el);
     setTimeout(()=>el.remove(), 4500);
+  }
+
+  // ---------- confirmação (substitui o confirm() nativo do navegador) ----------
+  function confirmDialog(message, title){
+    return new Promise((resolve) => {
+      document.getElementById('confirmTitle').textContent = title || 'Confirmar';
+      document.getElementById('confirmMsg').textContent = message;
+      const overlay = document.getElementById('overlayConfirm');
+      const okBtn = document.getElementById('confirmOkBtn');
+      const cancelBtn = document.getElementById('confirmCancelBtn');
+      overlay.classList.remove('hidden');
+      const cleanup = (result) => {
+        overlay.classList.add('hidden');
+        okBtn.onclick = null; cancelBtn.onclick = null;
+        resolve(result);
+      };
+      okBtn.onclick = () => cleanup(true);
+      cancelBtn.onclick = () => cleanup(false);
+    });
   }
 
   // ---------- API helper ----------
@@ -946,6 +1033,32 @@
     document.getElementById('cfgNeighborhood').value = user.address_neighborhood || '';
     document.getElementById('cfgCity').value = user.address_city || '';
     document.getElementById('cfgState').value = user.address_state || '';
+
+    // logo da empresa
+    if (user.logo_file_id){
+      const logoUrl = API_BASE + '/api/public/files/' + user.logo_file_id;
+      document.getElementById('logoDrop').innerHTML = '<img src="' + logoUrl + '" style="max-height:60px;">';
+      document.getElementById('topnavLogoMark').classList.add('hidden');
+      const navImg = document.getElementById('topnavLogoImg');
+      navImg.src = logoUrl;
+      navImg.classList.remove('hidden');
+    }
+
+    // paleta de cores salva na empresa (funciona em qualquer navegador/dispositivo)
+    if (user.palette_accent){
+      applyPalette(
+        user.palette_accent,
+        user.palette_accent_text || '#1a1a1a',
+        user.palette_bg || '#111318',
+        user.palette_accent2 || '#2d3748'
+      );
+      document.getElementById('colAccent').value = user.palette_accent;
+      document.getElementById('colAccentText').value = user.palette_accent_text || '#1a1a1a';
+      document.getElementById('colBg').value = user.palette_bg || '#111318';
+      document.getElementById('colAccent2').value = user.palette_accent2 || '#2d3748';
+    }
+
+    refreshErpConnections();
   }
 
   // ---------- nav ----------
@@ -1061,7 +1174,23 @@
   };
 
   // ---------- painel ----------
+  function skeletonRows(bodyId, cols, n, emptyId){
+    const body = document.getElementById(bodyId);
+    if (!body) return;
+    if (emptyId){ const e = document.getElementById(emptyId); if (e) e.classList.add('hidden'); }
+    let html = '';
+    for (let i = 0; i < n; i++){
+      html += '<tr>';
+      for (let c = 0; c < cols; c++){
+        html += '<td><span class="skel skel-text" style="width:' + (c === 0 ? '80%' : '55%') + ';"></span></td>';
+      }
+      html += '</tr>';
+    }
+    body.innerHTML = html;
+  }
+
   async function refreshStats(){
+    skeletonRows('recentBody', 4, 3, 'recentEmpty');
     try {
       const s = await api('/stats');
       document.getElementById('statTotal').textContent = s.total_products;
@@ -1076,11 +1205,13 @@
   }
 
   function fmtPrice(v){ return 'R$ ' + Number(v||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}); }
-  function statusBadge(status, errorMessage){
-    const label = status === 'published' ? 'Publicado' : status === 'error' ? 'Erro' : 'Rascunho';
+  function statusBadge(status, mock, errorMessage){
+    const label = status === 'published' ? (mock ? 'Publicado (simulado)' : 'Publicado') : status === 'error' ? 'Erro' : 'Rascunho';
     const icon = status === 'published' ? '✓' : status === 'error' ? '!' : '●';
-    const title = (status === 'error' && errorMessage) ? ' title="' + escapeHtml(errorMessage) + '"' : '';
-    return '<span class="badge ' + status + '"' + title + '>' + icon + ' ' + label + '</span>';
+    let tip = '';
+    if (status === 'error' && errorMessage) tip = errorMessage;
+    else if (mock) tip = 'Publicação simulada — conecte sua conta do Mercado Livre em Configurações para publicar de verdade.';
+    return '<span class="badge ' + status + '" title="' + escapeHtml(tip) + '">' + icon + ' ' + label + '</span>';
   }
 
   function productThumbUrl(p){
@@ -1104,9 +1235,9 @@
     const zero = Number(p.quantity) === 0;
     if (zero) tr.classList.add('zero-stock');
     if (compact){
-      tr.innerHTML = '<td class="col-product" title="' + title + '">' + productCellHtml(p, title) + '</td><td class="col-sku">' + escapeHtml(p.sku) + '</td><td class="col-price">' + fmtPrice(p.price) + '</td><td class="col-status">' + statusBadge(p.status, p.error_message) + '</td>';
+      tr.innerHTML = '<td class="col-product" title="' + title + '">' + productCellHtml(p, title) + '</td><td class="col-sku">' + escapeHtml(p.sku) + '</td><td class="col-price">' + fmtPrice(p.price) + '</td><td class="col-status">' + statusBadge(p.status, p.ml_mock, p.error_message) + '</td>';
     } else {
-      tr.innerHTML = '<td class="col-product" title="' + title + '">' + productCellHtml(p, title) + '</td><td class="col-sku">' + escapeHtml(p.sku) + '</td><td class="col-price">' + fmtPrice(p.price) + '</td><td class="col-qty">' + p.quantity + '</td><td class="col-status">' + statusBadge(p.status, p.error_message) + '</td><td class="col-actions"></td>';
+      tr.innerHTML = '<td class="col-product" title="' + title + '">' + productCellHtml(p, title) + '</td><td class="col-sku">' + escapeHtml(p.sku) + '</td><td class="col-price">' + fmtPrice(p.price) + '</td><td class="col-qty">' + p.quantity + '</td><td class="col-status">' + statusBadge(p.status, p.ml_mock, p.error_message) + '</td><td class="col-actions"></td>';
       const actionsTd = tr.lastElementChild;
       const actionsWrap = document.createElement('div');
       actionsWrap.className = 'row-actions';
@@ -1141,7 +1272,6 @@
     refreshProducts();
   });
 
-  let currentSearchQuery = "";
   let prodSearchTimer = null;
   document.getElementById('prodSearch').addEventListener('input', (e) => {
     clearTimeout(prodSearchTimer);
@@ -1152,6 +1282,7 @@
   });
 
   async function refreshProducts(){
+    skeletonRows('prodBody', 6, 4, 'prodEmpty');
     try {
       const params = new URLSearchParams();
       if (currentStatusFilter) params.set('status', currentStatusFilter);
@@ -1166,11 +1297,16 @@
   }
 
   async function publishProduct(id){
-    try { await api('/products/' + id + '/publish', {method:'POST'}); toast('Anúncio publicado.'); refreshProducts(); refreshStats(); }
-    catch(e){ toast(e.message, 'error'); }
+    try {
+      const p = await api('/products/' + id + '/publish', {method:'POST'});
+      toast(p.ml_mock
+        ? 'Anúncio publicado em modo simulado — conecte sua conta do Mercado Livre em Configurações para publicar de verdade.'
+        : 'Anúncio publicado no Mercado Livre.');
+      refreshProducts(); refreshStats();
+    } catch(e){ toast(e.message, 'error'); }
   }
   async function deleteProduct(id){
-    if (!confirm('Excluir este anúncio?')) return;
+    if (!await confirmDialog('Essa ação não pode ser desfeita.', 'Excluir este anúncio?')) return;
     try { await api('/products/' + id, {method:'DELETE'}); toast('Anúncio excluído.'); refreshProducts(); refreshStats(); }
     catch(e){ toast(e.message, 'error'); }
   }
@@ -1253,39 +1389,55 @@
     } catch(e){ toast(e.message, 'error'); }
   }
 
-  // ---------- automação (client-side only — sem persistência no backend hoje) ----------
+  // ---------- automação (salvo no backend, por empresa) ----------
   let erpSystems = [];
   function renderErp(){
     const body = document.getElementById('erpBody');
     body.innerHTML = '';
     document.getElementById('erpEmpty').classList.toggle('hidden', erpSystems.length > 0);
-    erpSystems.forEach((s, i) => {
+    erpSystems.forEach((s) => {
       const tr = document.createElement('tr');
-      tr.innerHTML = '<td class="col-product" title="' + escapeHtml(s.name) + '">' + escapeHtml(s.name) + '</td><td class="col-product" title="' + escapeHtml(s.url) + '">' + escapeHtml(s.url) + '</td><td class="col-sku">' + escapeHtml(s.sync) + '</td><td class="col-status">' + (s.active ? '<span class="badge published">✓ Ativo</span>' : '<span class="badge draft">● Pausado</span>') + '</td><td class="col-actions"></td>';
+      tr.innerHTML = '<td class="col-product" title="' + escapeHtml(s.name) + '">' + escapeHtml(s.name) + '</td><td class="col-product" title="' + escapeHtml(s.base_url) + '">' + escapeHtml(s.base_url) + '</td><td class="col-sku">' + escapeHtml(s.sync) + '</td><td class="col-status">' + (s.active ? '<span class="badge published">✓ Ativo</span>' : '<span class="badge draft">● Pausado</span>') + '</td><td class="col-actions"></td>';
       const actionsWrap = document.createElement('div');
       actionsWrap.className = 'row-actions';
       tr.lastElementChild.appendChild(actionsWrap);
       const del = document.createElement('button');
       del.className = 'danger'; del.title = 'Remover'; del.textContent = '✕';
-      del.onclick = () => { erpSystems.splice(i,1); renderErp(); };
+      del.onclick = async () => {
+        try { await api('/erp-connections/' + s.id, {method:'DELETE'}); refreshErpConnections(); toast('Integração removida.'); }
+        catch(e){ toast(e.message, 'error'); }
+      };
       actionsWrap.appendChild(del);
       body.appendChild(tr);
     });
   }
-  document.getElementById('btnErpConnect').onclick = () => {
+  async function refreshErpConnections(){
+    skeletonRows('erpBody', 5, 2, 'erpEmpty');
+    try { erpSystems = await api('/erp-connections'); renderErp(); }
+    catch(e){ console.error(e); }
+  }
+  document.getElementById('btnErpConnect').onclick = async () => {
     const name = document.getElementById('erpName').value.trim();
     const url = document.getElementById('erpUrl').value.trim();
     if (!name || !url){ toast('Preencha nome do sistema e URL base.', 'error'); return; }
-    erpSystems.push({
-      name, url,
-      sync: document.getElementById('erpSync').value,
-      active: document.getElementById('erpAuto').checked
-    });
-    document.getElementById('erpName').value = '';
-    document.getElementById('erpUrl').value = '';
-    document.getElementById('erpKey').value = '';
-    renderErp();
-    toast('Sistema conectado.');
+    const btn = document.getElementById('btnErpConnect');
+    btn.disabled = true;
+    try {
+      await api('/erp-connections', {method:'POST', body: JSON.stringify({
+        name,
+        base_url: url,
+        environment: document.getElementById('erpEnv').value,
+        api_key: document.getElementById('erpKey').value,
+        sync: document.getElementById('erpSync').value,
+        active: document.getElementById('erpAuto').checked
+      })});
+      document.getElementById('erpName').value = '';
+      document.getElementById('erpUrl').value = '';
+      document.getElementById('erpKey').value = '';
+      await refreshErpConnections();
+      toast('Sistema conectado.');
+    } catch(e){ toast(e.message, 'error'); }
+    finally { btn.disabled = false; }
   };
   renderErp();
 
@@ -1297,22 +1449,32 @@
     r.setProperty('--bg', bg);
     r.setProperty('--accent2', accent2);
   }
-  document.getElementById('btnApplyPalette').onclick = () => {
+  document.getElementById('btnApplyPalette').onclick = async () => {
     const accent = document.getElementById('colAccent').value;
     const accentText = document.getElementById('colAccentText').value;
     const bg = document.getElementById('colBg').value;
     const accent2 = document.getElementById('colAccent2').value;
     applyPalette(accent, accentText, bg, accent2);
     localStorage.setItem('mercadoauto_palette', JSON.stringify({accent, accentText, bg, accent2}));
-    toast('Paleta aplicada.');
+    try {
+      user = await api('/company/settings', {method:'PATCH', body: JSON.stringify({
+        palette_accent: accent, palette_accent_text: accentText, palette_bg: bg, palette_accent2: accent2
+      })});
+      toast('Paleta aplicada e salva na sua conta.');
+    } catch(e){ toast('Paleta aplicada neste navegador, mas falhou ao salvar: ' + e.message, 'error'); }
   };
-  document.getElementById('btnResetPalette').onclick = () => {
+  document.getElementById('btnResetPalette').onclick = async () => {
     applyPalette('#FFE600', '#1a1a1a', '#111318', '#2d3748');
     document.getElementById('colAccent').value = '#FFE600';
     document.getElementById('colAccentText').value = '#1a1a1a';
     document.getElementById('colBg').value = '#111318';
     document.getElementById('colAccent2').value = '#2d3748';
     localStorage.removeItem('mercadoauto_palette');
+    try {
+      user = await api('/company/settings', {method:'PATCH', body: JSON.stringify({
+        palette_accent: '', palette_accent_text: '', palette_bg: '', palette_accent2: ''
+      })});
+    } catch(e){ /* silencioso */ }
     toast('Paleta padrão restaurada.');
   };
   (function loadPalette(){
@@ -1329,19 +1491,33 @@
     }
   })();
 
-  // logo (client-side apenas — sem endpoint de logo no backend hoje)
+  // logo da empresa (enviada para o backend, aparece em qualquer navegador/dispositivo)
   const logoDrop = document.getElementById('logoDrop');
   const logoInput = document.getElementById('logoInput');
   logoDrop.onclick = () => logoInput.click();
-  logoInput.onchange = () => {
-    if (!logoInput.files[0]) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      localStorage.setItem('mercadoauto_logo', e.target.result);
-      logoDrop.innerHTML = '<img src="' + e.target.result + '" style="max-height:60px;">';
-      toast('Logo atualizada (salva neste navegador).');
-    };
-    reader.readAsDataURL(logoInput.files[0]);
+  logoInput.onchange = async () => {
+    const file = logoInput.files[0];
+    logoInput.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')){ toast('Selecione um arquivo de imagem.', 'error'); return; }
+    logoDrop.textContent = 'Enviando...';
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const up = await api('/uploads', {method:'POST', body: fd});
+      const res = await api('/company/settings', {method:'PATCH', body: JSON.stringify({logo_file_id: up.id})});
+      user = res;
+      const logoUrl = API_BASE + '/api/public/files/' + up.id;
+      logoDrop.innerHTML = '<img src="' + logoUrl + '" style="max-height:60px;">';
+      document.getElementById('topnavLogoMark').classList.add('hidden');
+      const navImg = document.getElementById('topnavLogoImg');
+      navImg.src = logoUrl;
+      navImg.classList.remove('hidden');
+      toast('Logo atualizada.');
+    } catch(e){
+      logoDrop.textContent = 'Clique para enviar logo';
+      toast('Falha ao enviar logo: ' + e.message, 'error');
+    }
   };
 
   // empresa: nome + template
@@ -1403,8 +1579,8 @@
     const cur = document.getElementById('cfgCurPassword').value;
     const nw = document.getElementById('cfgNewPassword').value;
     const nwConfirm = document.getElementById('cfgNewPasswordConfirm').value;
-    if (!cur || !nw || nw.length < 6){
-      errEl.textContent = 'Preencha a senha atual e uma nova senha com 6+ caracteres.';
+    if (!cur || !nw || nw.length < 8 || !/[A-Za-z]/.test(nw) || !/\d/.test(nw)){
+      errEl.textContent = 'A nova senha precisa ter 8+ caracteres, com pelo menos 1 letra e 1 número.';
       errEl.classList.remove('hidden');
       return;
     }
