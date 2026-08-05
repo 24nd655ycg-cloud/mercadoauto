@@ -1301,9 +1301,13 @@
   async function publishProduct(id){
     try {
       const p = await api('/products/' + id + '/publish', {method:'POST'});
-      toast(p.ml_mock
-        ? 'Anúncio publicado em modo simulado — conecte sua conta do Mercado Livre em Configurações para publicar de verdade.'
-        : 'Anúncio publicado no Mercado Livre.');
+      if (p.status === 'error'){
+        toast(p.error_message || 'O Mercado Livre recusou este anúncio — veja o motivo passando o mouse sobre o rótulo "Erro" na lista.', 'error');
+      } else if (p.ml_mock){
+        toast('Anúncio publicado em modo simulado — conecte sua conta do Mercado Livre em Configurações para publicar de verdade.');
+      } else {
+        toast('Anúncio publicado no Mercado Livre.');
+      }
       refreshProducts(); refreshStats();
     } catch(e){ toast(e.message, 'error'); }
   }
