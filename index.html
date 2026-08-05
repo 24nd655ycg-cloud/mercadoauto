@@ -61,7 +61,9 @@
   footer{color:var(--muted);text-align:center;padding:24px 0;font-size:13px;border-top:1px solid var(--border);}
 
   /* ---------- Auth modal ---------- */
-  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px;}
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px;overflow-y:auto;}
+  .modal{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:28px;width:100%;max-width:400px;max-height:calc(100vh - 32px);overflow-y:auto;margin:auto;}
+  .modal > .toolbar:first-child{position:sticky;top:0;background:var(--bg2);z-index:2;padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid var(--border);}
   .modal{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:28px;width:100%;max-width:400px;}
   .modal h2{margin:6px 0 2px;}
   .modal .sub{color:var(--muted);font-size:13px;margin-bottom:12px;}
@@ -1661,6 +1663,20 @@
     document.getElementById('overlayEdit').classList.remove('hidden');
   }
   document.getElementById('closeEdit').onclick = () => document.getElementById('overlayEdit').classList.add('hidden');
+
+  // Reforço: fecha qualquer modal aberto clicando fora dele (no fundo
+  // escurecido) ou apertando Esc — evita ficar "preso" numa tela sem saída
+  // visível, especialmente se o conteúdo for maior que a tela.
+  document.querySelectorAll('.overlay').forEach(ov => {
+    ov.addEventListener('click', (e) => {
+      if (e.target === ov) ov.classList.add('hidden');
+    });
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape'){
+      document.querySelectorAll('.overlay:not(.hidden)').forEach(ov => ov.classList.add('hidden'));
+    }
+  });
   document.getElementById('btnCancelEdit').onclick = () => document.getElementById('overlayEdit').classList.add('hidden');
   document.getElementById('btnSaveEdit').onclick = async () => {
     try {
