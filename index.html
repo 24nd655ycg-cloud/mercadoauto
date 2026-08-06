@@ -685,7 +685,9 @@
         <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;">
           <button class="btn btn-primary" id="btnMlConnect">Conectar conta do Mercado Livre</button>
           <button class="btn btn-secondary" id="btnMlSync">↻ Sincronizar anúncios agora</button>
+          <button class="btn btn-ghost" id="btnMlTestConn">🔎 Testar conexão agora</button>
         </div>
+        <div id="mlConnTestResult" class="hidden" style="margin-top:10px;font-size:13px;padding:10px 12px;border-radius:8px;"></div>
       </div>
 
       <div class="card settings-block">
@@ -1671,6 +1673,29 @@
     finally { btn.disabled = false; }
   };
 
+  document.getElementById('btnMlTestConn').onclick = async () => {
+    const btn = document.getElementById('btnMlTestConn');
+    const box = document.getElementById('mlConnTestResult');
+    btn.disabled = true; btn.textContent = 'Testando...';
+    box.classList.remove('hidden');
+    box.style.background = 'var(--bg2)';
+    box.textContent = 'Consultando o Mercado Livre em tempo real...';
+    try {
+      const r = await api('/ml/connection-status');
+      if (r.ok){
+        box.style.background = 'rgba(34,197,94,.12)';
+        box.innerHTML = `✓ Conexão ativa de verdade. Conta: <strong>${r.ml_nickname || r.ml_user_id}</strong> (site ${r.ml_site_id || '?'}).`;
+      } else {
+        box.style.background = 'rgba(239,68,68,.12)';
+        box.textContent = '✕ ' + (r.message || 'Conexão não está ativa.');
+      }
+    } catch(e){
+      box.style.background = 'rgba(239,68,68,.12)';
+      box.textContent = '✕ ' + (e.message || 'Não foi possível testar agora.');
+    }
+    finally { btn.disabled = false; btn.textContent = '🔎 Testar conexão agora'; }
+  };
+
   // ---------- editar anúncio ----------
   let currentMlAttributeValues = {};
   let npMlAttributeValues = {};
@@ -1694,12 +1719,19 @@
         return;
       }
       const catLabel = r.category_name ? `Categoria detectada: "${r.category_name}".` : 'Categoria detectada.';
-      if (!r.attributes || !r.attributes.length){
-        hint.textContent = catLabel + ' Nenhum campo extra encontrado para essa categoria. Se essa categoria estiver errada pro seu produto, digite outras palavras-chave acima e busque de novo.';
-        return;
-      }
+      const attrsFound = r.attributes || [];
       hint.textContent = catLabel + ' Preencha os campos abaixo (os marcados como "obrigatório" são exigidos pelo Mercado Livre para publicar — deixe os demais em branco se não se aplicarem ao seu produto). Categoria errada? Digite outras palavras-chave acima e busque de novo.';
-      r.attributes.forEach(attr => {
+      // O Mercado Livre já recusou anúncios desta conta por falta de
+      // 'FAMILY_NAME' mesmo quando esse campo não vem na lista de
+      // atributos da categoria — força ele a aparecer sempre, pro usuário
+      // preencher com um valor de verdade em vez de depender só do
+      // preenchimento automático (que usa marca/título como aproximação).
+      const hasFamilyName = attrsFound.some(a => (a.id || '').toUpperCase() === 'FAMILY_NAME');
+      const attributesToRender = hasFamilyName ? attrsFound : [
+        { id: 'FAMILY_NAME', name: 'Família / linha do produto', value_type: 'string', required: true, options: null },
+        ...attrsFound,
+      ];
+      attributesToRender.forEach(attr => {
         const row = document.createElement('div');
         row.style.marginBottom = '10px';
         const label = document.createElement('label');
