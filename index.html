@@ -740,6 +740,10 @@
     <div id="editMlAttrsWrap" class="hidden" style="margin-top:6px;">
       <label>Campos obrigatórios do Mercado Livre para esta categoria</label>
       <div id="editMlAttrsHint" style="font-size:12px;color:var(--muted);margin:-2px 0 8px;">Buscando categoria e campos obrigatórios...</div>
+      <div id="editMlCategoryRow" class="hidden" style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
+        <input type="text" id="editMlCategoryQuery" placeholder="Categoria errada? Digite outras palavras-chave (ex: junta cabeçote)" style="flex:1;">
+        <button type="button" class="btn btn-secondary" id="editMlCategoryRetry" style="white-space:nowrap;">Buscar de novo</button>
+      </div>
       <div id="editMlAttrsFields"></div>
     </div>
 
@@ -1101,6 +1105,7 @@
     document.getElementById('npVideo').value = '';
     npPhotos = [];
     npMlAttributeValues = {};
+    npMlCategoryId = null;
     document.getElementById('npMlAttrsWrap').classList.add('hidden');
     document.getElementById('npMlAttrsFields').innerHTML = '';
     renderThumbRow('npPhotoRow', 'npPhotoAdd', npPhotos, removeNpPhoto);
@@ -1347,7 +1352,8 @@
       image_ids: npPhotos.map(p => p.id),
       video_url: document.getElementById('npVideo').value.trim() || null,
       use_ai: document.getElementById('npUseAi').checked,
-      ml_attributes: npMlAttributeValues
+      ml_attributes: npMlAttributeValues,
+      ml_category_id: npMlCategoryId
     };
     if (!payload.title || !payload.sku || !payload.price){
       toast('Preencha SKU, título e preço.', 'error'); return;
@@ -1668,8 +1674,10 @@
   // ---------- editar anúncio ----------
   let currentMlAttributeValues = {};
   let npMlAttributeValues = {};
+  let currentMlCategoryId = null;
+  let npMlCategoryId = null;
 
-  async function loadMlAttributesInto(title, savedValues, valuesStore, wrapId, hintId, fieldsId){
+  async function loadMlAttributesInto(title, savedValues, valuesStore, wrapId, hintId, fieldsId, onCategoryId, queryOverride){
     const wrap = document.getElementById(wrapId);
     const hint = document.getElementById(hintId);
     const fieldsEl = document.getElementById(fieldsId);
@@ -1678,12 +1686,19 @@
     hint.textContent = 'Buscando categoria e campos obrigatórios no Mercado Livre...';
     fieldsEl.innerHTML = '';
     try {
-      const r = await api('/products/category-attributes?title=' + encodeURIComponent(title));
-      if (!r.category_id || !r.attributes || !r.attributes.length){
-        hint.textContent = 'Nenhum campo extra obrigatório encontrado para esta categoria (ou categoria não identificada a partir do título).';
+      const qs = 'title=' + encodeURIComponent(title) + (queryOverride ? '&query=' + encodeURIComponent(queryOverride) : '');
+      const r = await api('/products/category-attributes?' + qs);
+      if (onCategoryId) onCategoryId(r.category_id || null);
+      if (!r.category_id){
+        hint.textContent = 'Categoria não identificada a partir do título — tente digitar palavras-chave mais diretas no campo acima.';
         return;
       }
-      hint.textContent = 'Categoria detectada — preencha os campos abaixo (exigidos pelo Mercado Livre para publicar):';
+      const catLabel = r.category_name ? `Categoria detectada: "${r.category_name}".` : 'Categoria detectada.';
+      if (!r.attributes || !r.attributes.length){
+        hint.textContent = catLabel + ' Nenhum campo extra obrigatório encontrado. Se essa categoria estiver errada pro seu produto, digite outras palavras-chave acima e busque de novo.';
+        return;
+      }
+      hint.textContent = catLabel + ' Preencha os campos abaixo (exigidos pelo Mercado Livre para publicar). Categoria errada? Digite outras palavras-chave acima e busque de novo.';
       r.attributes.forEach(attr => {
         const row = document.createElement('div');
         row.style.marginBottom = '10px';
@@ -1720,21 +1735,34 @@
 
   function loadMlAttributesFor(title, savedValues){
     currentMlAttributeValues = {};
-    return loadMlAttributesInto(title, savedValues, currentMlAttributeValues, 'editMlAttrsWrap', 'editMlAttrsHint', 'editMlAttrsFields');
+    document.getElementById('editMlCategoryRow').classList.remove('hidden');
+    document.getElementById('editMlCategoryQuery').value = '';
+    return loadMlAttributesInto(title, savedValues, currentMlAttributeValues, 'editMlAttrsWrap', 'editMlAttrsHint', 'editMlAttrsFields', (catId) => { currentMlCategoryId = catId; });
   }
+
+  document.getElementById('editMlCategoryRetry').onclick = () => {
+    const q = document.getElementById('editMlCategoryQuery').value.trim();
+    const title = document.getElementById('editTitle').value;
+    if (!q){ toast('Digite algumas palavras-chave para buscar a categoria certa.', 'error'); return; }
+    loadMlAttributesInto(title, currentMlAttributeValues, currentMlAttributeValues, 'editMlAttrsWrap', 'editMlAttrsHint', 'editMlAttrsFields', (catId) => { currentMlCategoryId = catId; }, q);
+  };
+  document.getElementById('editMlCategoryQuery').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter'){ e.preventDefault(); document.getElementById('editMlCategoryRetry').click(); }
+  });
 
   let npAttrsTimer = null;
   document.getElementById('npTitle').addEventListener('input', (e) => {
     clearTimeout(npAttrsTimer);
     const title = e.target.value;
     npAttrsTimer = setTimeout(() => {
-      loadMlAttributesInto(title, npMlAttributeValues, npMlAttributeValues, 'npMlAttrsWrap', 'npMlAttrsHint', 'npMlAttrsFields');
+      loadMlAttributesInto(title, npMlAttributeValues, npMlAttributeValues, 'npMlAttrsWrap', 'npMlAttrsHint', 'npMlAttrsFields', (catId) => { npMlCategoryId = catId; });
     }, 600);
   });
 
   function openEdit(p){
     currentEditId = p.id;
     currentMlAttributeValues = {};
+    currentMlCategoryId = p.ml_category_id || null;
     document.getElementById('editSku').value = p.sku;
     document.getElementById('editTitle').value = p.ai_title || p.title;
     document.getElementById('editDesc').value = p.ai_description || p.description;
@@ -1776,7 +1804,8 @@
         image_ids: editPhotos.filter(p => !p.external).map(p => p.id),
         external_image_urls: editPhotos.filter(p => p.external).map(p => p.url),
         video_url: document.getElementById('editVideo').value.trim(),
-        ml_attributes: currentMlAttributeValues
+        ml_attributes: currentMlAttributeValues,
+        ml_category_id: currentMlCategoryId
       })});
       toast('Alterações salvas.');
       document.getElementById('overlayEdit').classList.add('hidden');
