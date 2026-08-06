@@ -1695,15 +1695,16 @@
       }
       const catLabel = r.category_name ? `Categoria detectada: "${r.category_name}".` : 'Categoria detectada.';
       if (!r.attributes || !r.attributes.length){
-        hint.textContent = catLabel + ' Nenhum campo extra obrigatório encontrado. Se essa categoria estiver errada pro seu produto, digite outras palavras-chave acima e busque de novo.';
+        hint.textContent = catLabel + ' Nenhum campo extra encontrado para essa categoria. Se essa categoria estiver errada pro seu produto, digite outras palavras-chave acima e busque de novo.';
         return;
       }
-      hint.textContent = catLabel + ' Preencha os campos abaixo (exigidos pelo Mercado Livre para publicar). Categoria errada? Digite outras palavras-chave acima e busque de novo.';
+      hint.textContent = catLabel + ' Preencha os campos abaixo (os marcados como "obrigatório" são exigidos pelo Mercado Livre para publicar — deixe os demais em branco se não se aplicarem ao seu produto). Categoria errada? Digite outras palavras-chave acima e busque de novo.';
       r.attributes.forEach(attr => {
         const row = document.createElement('div');
         row.style.marginBottom = '10px';
         const label = document.createElement('label');
-        label.textContent = attr.name || attr.id;
+        label.textContent = (attr.name || attr.id) + (attr.required ? ' (obrigatório)' : ' (opcional)');
+        label.style.color = attr.required ? 'var(--text)' : 'var(--muted)';
         row.appendChild(label);
         let input;
         if (attr.options && attr.options.length){
