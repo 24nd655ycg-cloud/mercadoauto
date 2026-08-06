@@ -1716,6 +1716,45 @@
             o.value = opt.name; o.textContent = opt.name;
             input.appendChild(o);
           });
+          const optOther = document.createElement('option');
+          optOther.value = '__outro__'; optOther.textContent = 'Outro (não está na lista — digitar manualmente)';
+          input.appendChild(optOther);
+
+          const manualInput = document.createElement('input');
+          manualInput.type = 'text';
+          manualInput.placeholder = 'Digite o valor exato';
+          manualInput.className = 'ml-attr-input hidden';
+          manualInput.style.marginTop = '6px';
+          manualInput.addEventListener('input', () => { valuesStore[attr.id] = manualInput.value; });
+
+          input.addEventListener('change', () => {
+            if (input.value === '__outro__'){
+              manualInput.classList.remove('hidden');
+              valuesStore[attr.id] = manualInput.value;
+            } else {
+              manualInput.classList.add('hidden');
+              valuesStore[attr.id] = input.value;
+            }
+          });
+
+          // Se o valor salvo não estiver entre as opções conhecidas, assume
+          // que foi digitado manualmente antes (lista pode ter vindo
+          // incompleta da API do Mercado Livre) e já abre o campo de texto.
+          if (savedValues && savedValues[attr.id]){
+            const matchesOption = attr.options.some(o => o.name === savedValues[attr.id]);
+            if (matchesOption){
+              input.value = savedValues[attr.id];
+            } else {
+              input.value = '__outro__';
+              manualInput.classList.remove('hidden');
+              manualInput.value = savedValues[attr.id];
+            }
+          }
+          row.appendChild(input);
+          row.appendChild(manualInput);
+          if (savedValues && savedValues[attr.id]) valuesStore[attr.id] = savedValues[attr.id];
+          fieldsEl.appendChild(row);
+          return;
         } else {
           input = document.createElement('input');
           input.type = 'text';
