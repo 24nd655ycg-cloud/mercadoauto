@@ -742,9 +742,14 @@
     <div id="editMlAttrsWrap" class="hidden" style="margin-top:6px;">
       <label>Campos obrigatórios do Mercado Livre para esta categoria</label>
       <div id="editMlAttrsHint" style="font-size:12px;color:var(--muted);margin:-2px 0 8px;">Buscando categoria e campos obrigatórios...</div>
-      <div id="editMlCategoryRow" class="hidden" style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
+      <div id="editMlCategoryRow" class="hidden" style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
         <input type="text" id="editMlCategoryQuery" placeholder="Categoria errada? Digite outras palavras-chave (ex: junta cabeçote)" style="flex:1;">
         <button type="button" class="btn btn-secondary" id="editMlCategoryRetry" style="white-space:nowrap;">Buscar de novo</button>
+      </div>
+      <button type="button" class="btn btn-ghost" id="editMlCategoryBrowseToggle" style="width:100%;margin-bottom:10px;">📂 Escolher categoria manualmente (navegar como no Mercado Livre)</button>
+      <div id="editMlCategoryBrowser" class="hidden" style="border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px;">
+        <div id="editMlCategoryBreadcrumb" style="font-size:12px;color:var(--muted);margin-bottom:8px;"></div>
+        <div id="editMlCategoryList" style="max-height:220px;overflow-y:auto;"></div>
       </div>
       <div id="editMlAttrsFields"></div>
     </div>
@@ -1702,104 +1707,109 @@
   let currentMlCategoryId = null;
   let npMlCategoryId = null;
 
+  function renderMlAttrFields(r, valuesStore, hintId, fieldsId, onCategoryId){
+    const hint = document.getElementById(hintId);
+    const fieldsEl = document.getElementById(fieldsId);
+    const savedValues = valuesStore;
+    if (onCategoryId) onCategoryId(r.category_id || null);
+    fieldsEl.innerHTML = '';
+    if (!r.category_id){
+      hint.textContent = 'Categoria não identificada — tente digitar palavras-chave mais diretas, ou use "Escolher categoria manualmente" abaixo.';
+      return;
+    }
+    const catLabel = r.category_name ? `Categoria detectada: "${r.category_name}".` : 'Categoria detectada.';
+    const attrsFound = r.attributes || [];
+    hint.textContent = catLabel + ' Preencha os campos abaixo (os marcados como "obrigatório" são exigidos pelo Mercado Livre para publicar — deixe os demais em branco se não se aplicarem ao seu produto). Categoria errada? Digite outras palavras-chave acima, ou escolha manualmente.';
+    // O Mercado Livre já recusou anúncios desta conta por falta de
+    // 'FAMILY_NAME' mesmo quando esse campo não vem na lista de atributos
+    // da categoria — força ele a aparecer sempre, pro usuário preencher
+    // com um valor de verdade em vez de depender só do preenchimento
+    // automático (que usa marca/título como aproximação).
+    const hasFamilyName = attrsFound.some(a => (a.id || '').toUpperCase() === 'FAMILY_NAME');
+    const attributesToRender = hasFamilyName ? attrsFound : [
+      { id: 'FAMILY_NAME', name: 'Família / linha do produto', value_type: 'string', required: true, options: null },
+      ...attrsFound,
+    ];
+    attributesToRender.forEach(attr => {
+      const row = document.createElement('div');
+      row.style.marginBottom = '10px';
+      const label = document.createElement('label');
+      label.textContent = (attr.name || attr.id) + (attr.required ? ' (obrigatório)' : ' (opcional)');
+      label.style.color = attr.required ? 'var(--text)' : 'var(--muted)';
+      row.appendChild(label);
+      let input;
+      if (attr.options && attr.options.length){
+        input = document.createElement('select');
+        const optBlank = document.createElement('option');
+        optBlank.value = ''; optBlank.textContent = 'Selecione...';
+        input.appendChild(optBlank);
+        attr.options.forEach(opt => {
+          const o = document.createElement('option');
+          o.value = opt.name; o.textContent = opt.name;
+          input.appendChild(o);
+        });
+        const optOther = document.createElement('option');
+        optOther.value = '__outro__'; optOther.textContent = 'Outro (não está na lista — digitar manualmente)';
+        input.appendChild(optOther);
+
+        const manualInput = document.createElement('input');
+        manualInput.type = 'text';
+        manualInput.placeholder = 'Digite o valor exato';
+        manualInput.className = 'ml-attr-input hidden';
+        manualInput.style.marginTop = '6px';
+        manualInput.addEventListener('input', () => { valuesStore[attr.id] = manualInput.value; });
+
+        input.addEventListener('change', () => {
+          if (input.value === '__outro__'){
+            manualInput.classList.remove('hidden');
+            valuesStore[attr.id] = manualInput.value;
+          } else {
+            manualInput.classList.add('hidden');
+            valuesStore[attr.id] = input.value;
+          }
+        });
+
+        if (savedValues && savedValues[attr.id]){
+          const matchesOption = attr.options.some(o => o.name === savedValues[attr.id]);
+          if (matchesOption){
+            input.value = savedValues[attr.id];
+          } else {
+            input.value = '__outro__';
+            manualInput.classList.remove('hidden');
+            manualInput.value = savedValues[attr.id];
+          }
+        }
+        row.appendChild(input);
+        row.appendChild(manualInput);
+        if (savedValues && savedValues[attr.id]) valuesStore[attr.id] = savedValues[attr.id];
+        fieldsEl.appendChild(row);
+        return;
+      } else {
+        input = document.createElement('input');
+        input.type = 'text';
+      }
+      input.dataset.attrId = attr.id;
+      input.className = 'ml-attr-input';
+      if (savedValues && savedValues[attr.id]) input.value = savedValues[attr.id];
+      if (savedValues && savedValues[attr.id]) valuesStore[attr.id] = savedValues[attr.id];
+      input.addEventListener('input', () => { valuesStore[attr.id] = input.value; });
+      row.appendChild(input);
+      fieldsEl.appendChild(row);
+    });
+  }
+
   async function loadMlAttributesInto(title, savedValues, valuesStore, wrapId, hintId, fieldsId, onCategoryId, queryOverride){
     const wrap = document.getElementById(wrapId);
     const hint = document.getElementById(hintId);
-    const fieldsEl = document.getElementById(fieldsId);
     if (!title || !title.trim()){ wrap.classList.add('hidden'); return; }
     wrap.classList.remove('hidden');
     hint.textContent = 'Buscando categoria e campos obrigatórios no Mercado Livre...';
-    fieldsEl.innerHTML = '';
+    document.getElementById(fieldsId).innerHTML = '';
     try {
       const qs = 'title=' + encodeURIComponent(title) + (queryOverride ? '&query=' + encodeURIComponent(queryOverride) : '');
       const r = await api('/products/category-attributes?' + qs);
-      if (onCategoryId) onCategoryId(r.category_id || null);
-      if (!r.category_id){
-        hint.textContent = 'Categoria não identificada a partir do título — tente digitar palavras-chave mais diretas no campo acima.';
-        return;
-      }
-      const catLabel = r.category_name ? `Categoria detectada: "${r.category_name}".` : 'Categoria detectada.';
-      const attrsFound = r.attributes || [];
-      hint.textContent = catLabel + ' Preencha os campos abaixo (os marcados como "obrigatório" são exigidos pelo Mercado Livre para publicar — deixe os demais em branco se não se aplicarem ao seu produto). Categoria errada? Digite outras palavras-chave acima e busque de novo.';
-      // O Mercado Livre já recusou anúncios desta conta por falta de
-      // 'FAMILY_NAME' mesmo quando esse campo não vem na lista de
-      // atributos da categoria — força ele a aparecer sempre, pro usuário
-      // preencher com um valor de verdade em vez de depender só do
-      // preenchimento automático (que usa marca/título como aproximação).
-      const hasFamilyName = attrsFound.some(a => (a.id || '').toUpperCase() === 'FAMILY_NAME');
-      const attributesToRender = hasFamilyName ? attrsFound : [
-        { id: 'FAMILY_NAME', name: 'Família / linha do produto', value_type: 'string', required: true, options: null },
-        ...attrsFound,
-      ];
-      attributesToRender.forEach(attr => {
-        const row = document.createElement('div');
-        row.style.marginBottom = '10px';
-        const label = document.createElement('label');
-        label.textContent = (attr.name || attr.id) + (attr.required ? ' (obrigatório)' : ' (opcional)');
-        label.style.color = attr.required ? 'var(--text)' : 'var(--muted)';
-        row.appendChild(label);
-        let input;
-        if (attr.options && attr.options.length){
-          input = document.createElement('select');
-          const optBlank = document.createElement('option');
-          optBlank.value = ''; optBlank.textContent = 'Selecione...';
-          input.appendChild(optBlank);
-          attr.options.forEach(opt => {
-            const o = document.createElement('option');
-            o.value = opt.name; o.textContent = opt.name;
-            input.appendChild(o);
-          });
-          const optOther = document.createElement('option');
-          optOther.value = '__outro__'; optOther.textContent = 'Outro (não está na lista — digitar manualmente)';
-          input.appendChild(optOther);
-
-          const manualInput = document.createElement('input');
-          manualInput.type = 'text';
-          manualInput.placeholder = 'Digite o valor exato';
-          manualInput.className = 'ml-attr-input hidden';
-          manualInput.style.marginTop = '6px';
-          manualInput.addEventListener('input', () => { valuesStore[attr.id] = manualInput.value; });
-
-          input.addEventListener('change', () => {
-            if (input.value === '__outro__'){
-              manualInput.classList.remove('hidden');
-              valuesStore[attr.id] = manualInput.value;
-            } else {
-              manualInput.classList.add('hidden');
-              valuesStore[attr.id] = input.value;
-            }
-          });
-
-          // Se o valor salvo não estiver entre as opções conhecidas, assume
-          // que foi digitado manualmente antes (lista pode ter vindo
-          // incompleta da API do Mercado Livre) e já abre o campo de texto.
-          if (savedValues && savedValues[attr.id]){
-            const matchesOption = attr.options.some(o => o.name === savedValues[attr.id]);
-            if (matchesOption){
-              input.value = savedValues[attr.id];
-            } else {
-              input.value = '__outro__';
-              manualInput.classList.remove('hidden');
-              manualInput.value = savedValues[attr.id];
-            }
-          }
-          row.appendChild(input);
-          row.appendChild(manualInput);
-          if (savedValues && savedValues[attr.id]) valuesStore[attr.id] = savedValues[attr.id];
-          fieldsEl.appendChild(row);
-          return;
-        } else {
-          input = document.createElement('input');
-          input.type = 'text';
-        }
-        input.dataset.attrId = attr.id;
-        input.className = 'ml-attr-input';
-        if (savedValues && savedValues[attr.id]) input.value = savedValues[attr.id];
-        if (savedValues && savedValues[attr.id]) valuesStore[attr.id] = savedValues[attr.id];
-        input.addEventListener('input', () => { valuesStore[attr.id] = input.value; });
-        row.appendChild(input);
-        fieldsEl.appendChild(row);
-      });
+      if (savedValues) Object.assign(valuesStore, savedValues);
+      renderMlAttrFields(r, valuesStore, hintId, fieldsId, onCategoryId);
     } catch(e){
       hint.textContent = 'Não foi possível buscar os campos obrigatórios agora (' + (e.message || 'erro') + ').';
     }
@@ -1822,6 +1832,81 @@
     if (e.key === 'Enter'){ e.preventDefault(); document.getElementById('editMlCategoryRetry').click(); }
   });
 
+  // ---------- navegador manual de categorias (igual ao fluxo do Mercado Livre) ----------
+  let categoryBrowserPath = []; // [{id, name}, ...] até o nível atual
+
+  async function renderCategoryLevel(parentId){
+    const listEl = document.getElementById('editMlCategoryList');
+    const crumbEl = document.getElementById('editMlCategoryBreadcrumb');
+    listEl.innerHTML = '<div style="padding:8px;color:var(--muted);font-size:13px;">Carregando...</div>';
+    crumbEl.innerHTML = categoryBrowserPath.length
+      ? categoryBrowserPath.map((c, i) => `<span class="crumb-link" data-idx="${i}" style="cursor:pointer;color:var(--accent);">${escapeHtml(c.name)}</span>`).join(' › ')
+      : 'Categorias principais';
+    crumbEl.querySelectorAll('.crumb-link').forEach(el => {
+      el.onclick = () => {
+        const idx = parseInt(el.dataset.idx, 10);
+        const target = categoryBrowserPath[idx];
+        categoryBrowserPath = categoryBrowserPath.slice(0, idx + 1);
+        renderCategoryLevel(target.id);
+      };
+    });
+    try {
+      const r = await api('/products/category-browser' + (parentId ? ('?parent_id=' + encodeURIComponent(parentId)) : ''));
+      listEl.innerHTML = '';
+      if (parentId){
+        const useBtn = document.createElement('button');
+        useBtn.type = 'button';
+        useBtn.className = 'btn btn-secondary';
+        useBtn.style.cssText = 'width:100%;margin-bottom:8px;';
+        useBtn.textContent = '✓ Usar esta categoria: ' + (r.name || parentId);
+        useBtn.onclick = () => selectManualCategory(r.id, r.name);
+        listEl.appendChild(useBtn);
+      }
+      (r.children || []).forEach(child => {
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'btn btn-ghost';
+        item.style.cssText = 'width:100%;text-align:left;margin-bottom:4px;display:flex;justify-content:space-between;';
+        item.innerHTML = '<span>' + escapeHtml(child.name) + '</span><span>›</span>';
+        item.onclick = () => {
+          categoryBrowserPath.push({id: child.id, name: child.name});
+          renderCategoryLevel(child.id);
+        };
+        listEl.appendChild(item);
+      });
+      if (!r.children || !r.children.length){
+        const info = document.createElement('div');
+        info.style.cssText = 'padding:8px;color:var(--muted);font-size:12px;';
+        info.textContent = 'Esta é uma categoria-folha (sem subcategorias) — clique em "Usar esta categoria" acima.';
+        listEl.appendChild(info);
+      }
+    } catch(e){
+      listEl.innerHTML = '<div style="padding:8px;color:var(--danger);font-size:13px;">Não foi possível carregar (' + (e.message || 'erro') + ').</div>';
+    }
+  }
+
+  async function selectManualCategory(categoryId, categoryName){
+    currentMlCategoryId = categoryId;
+    document.getElementById('editMlCategoryBrowser').classList.add('hidden');
+    document.getElementById('editMlAttrsHint').textContent = `Categoria escolhida manualmente: "${categoryName}". Buscando campos...`;
+    document.getElementById('editMlAttrsFields').innerHTML = '';
+    try {
+      const r = await api('/products/category-attributes?category_id=' + encodeURIComponent(categoryId));
+      renderMlAttrFields(r, currentMlAttributeValues, 'editMlAttrsHint', 'editMlAttrsFields', (catId) => { currentMlCategoryId = catId; });
+    } catch(e){
+      document.getElementById('editMlAttrsHint').textContent = 'Não foi possível buscar os campos dessa categoria (' + (e.message || 'erro') + ').';
+    }
+  }
+
+  document.getElementById('editMlCategoryBrowseToggle').onclick = () => {
+    const box = document.getElementById('editMlCategoryBrowser');
+    box.classList.toggle('hidden');
+    if (!box.classList.contains('hidden')){
+      categoryBrowserPath = [];
+      renderCategoryLevel(null);
+    }
+  };
+
   let npAttrsTimer = null;
   document.getElementById('npTitle').addEventListener('input', (e) => {
     clearTimeout(npAttrsTimer);
@@ -1835,6 +1920,8 @@
     currentEditId = p.id;
     currentMlAttributeValues = {};
     currentMlCategoryId = p.ml_category_id || null;
+    document.getElementById('editMlCategoryBrowser').classList.add('hidden');
+    categoryBrowserPath = [];
     document.getElementById('editSku').value = p.sku;
     document.getElementById('editTitle').value = p.ai_title || p.title;
     document.getElementById('editDesc').value = p.ai_description || p.description;
